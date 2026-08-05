@@ -77,12 +77,15 @@
 /* Lista de la compra */
 .mk-buy { display: flex; align-items: center; gap: 9px; padding: 7px 0; border-bottom: 1px solid #f2f1ea; font-size: 10.5px; font-weight: 600; }
 .mk-buy:last-child { border-bottom: none; }
-.mk-box { width: 15px; height: 15px; border-radius: 4px; border: 1.6px solid #d6d9d2; flex-shrink: 0; }
+.mk-box { width: 15px; height: 15px; border-radius: 4px; border: 1.6px solid #d6d9d2; flex-shrink: 0; transition: background-color .25s ease, border-color .25s ease; }
 .mk-buy.done .mk-box { background: var(--primary); border-color: var(--primary); position: relative; }
 .mk-buy.done .mk-box::after { content: '✓'; color: #fff; font-size: 10px; position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; }
-.mk-buy.done span { text-decoration: line-through; opacity: 0.42; }
+.mk-buy span:last-child { transition: opacity .25s ease; }
+.mk-buy.done span:last-child { text-decoration: line-through; opacity: 0.42; }
 .mk-prog { height: 6px; background: #ecebe3; border-radius: 999px; overflow: hidden; margin-top: 7px; }
-.mk-prog i { display: block; height: 100%; background: var(--accent); }
+.mk-prog i { display: block; height: 100%; background: var(--accent); transition: width .3s ease; }
+.mk-ring svg circle:nth-child(2) { transition: stroke-dasharray .6s ease; }
+.mk-meal { transition: opacity .4s ease; }
 
 /* Batch cooking */
 .mk-batch { background: #05301d; color: #fff; border-radius: 16px; padding: 13px; margin-bottom: 11px; display: flex; gap: 10px; align-items: center; }
