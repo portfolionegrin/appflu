@@ -1,0 +1,130 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-obsidian: #0a0a0b;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-cormorant), ui-serif, Georgia, serif;
+}
+
+/* Móviles bajos (iPhone SE, Safari con barras): todo cabe sin scroll. */
+@custom-variant short (@media (max-height: 760px));
+
+/* --accent llega por perfil (theme_accent) en el style del <main>. */
+@theme inline {
+  --color-accent: var(--accent);
+}
+
+:root {
+  --accent: #d4af37;
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-obsidian);
+  color: var(--color-zinc-100);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- Fondo: resina negra con luz cálida arriba ---------- */
+@utility portal-backdrop {
+  background:
+    radial-gradient(70% 42% at 50% 0%, color-mix(in oklab, var(--accent) 20%, transparent) 0%, transparent 100%),
+    radial-gradient(45% 30% at 12% 4%, rgb(107 112 60 / 0.16) 0%, transparent 100%),
+    var(--color-obsidian);
+}
+
+/* ---------- Anillo del logo: destello que gira despacio ---------- */
+@utility logo-ring {
+  background: conic-gradient(
+    from 0deg,
+    color-mix(in oklab, var(--accent) 90%, white) 0deg,
+    color-mix(in oklab, var(--accent) 15%, transparent) 70deg,
+    color-mix(in oklab, var(--accent) 45%, transparent) 180deg,
+    color-mix(in oklab, var(--accent) 10%, transparent) 280deg,
+    color-mix(in oklab, var(--accent) 90%, white) 360deg
+  );
+}
+
+/* ---------- Borde iluminado de la tarjeta de reseñas ---------- */
+@utility review-border {
+  background: linear-gradient(
+    150deg,
+    color-mix(in oklab, var(--accent) 85%, transparent) 0%,
+    color-mix(in oklab, var(--accent) 12%, transparent) 38%,
+    rgb(63 63 70 / 0.5) 62%,
+    color-mix(in oklab, var(--accent) 40%, transparent) 100%
+  );
+  box-shadow: 0 18px 50px -24px color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+@utility review-sheen {
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    color-mix(in oklab, var(--accent) 14%, transparent) 48%,
+    rgb(255 255 255 / 0.06) 50%,
+    transparent 68%
+  );
+}
+
+@keyframes star-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-25deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.18) rotate(4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes star-glint {
+  0%,
+  86%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  92% {
+    filter: drop-shadow(0 0 5px color-mix(in oklab, var(--accent) 90%, white));
+  }
+}
+
+@keyframes sheen {
+  0%,
+  55% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes logo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .star {
+    animation:
+      star-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both,
+      star-glint 4.5s ease-in-out 1.2s infinite;
+  }
+  .sheen {
+    animation: sheen 5.5s ease-in-out 1.4s infinite;
+  }
+  .logo-spin {
+    animation: logo-spin 7s linear infinite;
+  }
+}

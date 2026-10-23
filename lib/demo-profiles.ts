@@ -1,0 +1,42 @@
+import type { Profile } from './types'
+
+// Copia exacta del seed de supabase/schema.sql. Se usa cuando Supabase no
+// está configurado (local o primer deploy) y en la ruta /preview.
+export const DEMO_PROFILES: Record<string, Profile> = {
+  'atelier-corte-barba': {
+    id: '8b1f6a52-3c4e-4f0a-9d7b-2a6c5e1f0a01',
+    slug: 'atelier-corte-barba',
+    business_name: 'Atelier Corte & Barba',
+    subtitle: 'Barbería de autor · Desde 2016',
+    logo_url: null,
+    theme_accent: '#D4AF37',
+    mode: 'portal',
+    direct_url: null,
+    google_review_url: 'https://search.google.com/local/writereview?placeid=ChIJ_ATELIER_DEMO_PLACE_ID',
+    booking_url: 'https://booksy.com/es-es/000000_atelier-corte-barba_barberia_00000_madrid',
+    booking_label: 'Reservar próxima cita en Booksy',
+    website_url: 'https://ateliercortebarba.example',
+    instagram_url: 'https://www.instagram.com/ateliercortebarba.demo/',
+    tiktok_url: 'https://www.tiktok.com/@ateliercortebarba.demo',
+    whatsapp_phone: '+34 600 000 000',
+    is_active: true,
+  },
+  'nova-studio': {
+    id: '3d2c9e7a-51b8-4c6f-8e0d-7f4a1b2c3d02',
+    slug: 'nova-studio',
+    business_name: 'NOVA Studio',
+    subtitle: 'Vecindario · Gran Canaria',
+    logo_url: null,
+    theme_accent: '#C5A059',
+    mode: 'portal',
+    direct_url: null,
+    google_review_url: 'https://share.google/5xNBIgmZlHHxQmL14',
+    booking_url: 'https://share.google/5ixOGwd1RSKAVXVIb',
+    booking_label: 'Reservar próxima cita en Booksy',
+    website_url: null,
+    instagram_url: 'https://www.instagram.com/novastudio.gc/',
+    tiktok_url: null,
+    whatsapp_phone: null,
+    is_active: true,
+  },
+}
