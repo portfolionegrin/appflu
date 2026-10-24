@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { ArrowUpRight, BadgeCheck, CalendarDays, ChevronRight, Globe, Nfc, Star } from 'lucide-react'
+import { ArrowUpRight, BadgeCheck, CalendarDays, ChevronRight, Globe, Nfc, ShoppingBag, Star } from 'lucide-react'
 import type { Profile, TrackTarget } from '@/lib/types'
 import { brandUrl, handleFromUrl, hostFromUrl, photoList, safeAccent, safeUrl, whatsappUrl } from '@/lib/links'
 import { GoogleIcon, InstagramIcon, TikTokIcon, WhatsAppIcon } from './BrandIcons'
@@ -16,20 +16,58 @@ type Props = {
 
 type Tile = { track: TrackTarget; href: string; label: string; detail: string; icon: ReactNode }
 
+/** Tarjeta grande con hasta 3 fotos (Instagram, tienda...). */
+type Feature = Tile & { cta: string; iconClass: string; photos: string[]; portrait: boolean }
+
 const PHOTO_COLS = ['', 'grid-cols-1', 'grid-cols-2', 'grid-cols-3']
 
-/** Instagram sale como tarjeta grande con fotos cuando las hay; si no, como baldosa. */
-function buildTiles(profile: Profile, instagramFeatured: boolean): Tile[] {
+function websiteIcon(label: string | null) {
+  const Icon = /tienda|shop|store/i.test(label ?? '') ? ShoppingBag : Globe
+  return <Icon className="size-[18px]" strokeWidth={1.8} />
+}
+
+/** Los enlaces con fotos salen como tarjeta grande; el resto, como baldosa del bento grid. */
+function buildLinks(profile: Profile): { features: Feature[]; tiles: Tile[] } {
+  const features: Feature[] = []
   const tiles: Tile[] = []
   const website = safeUrl(profile.website_url)
-  const instagram = instagramFeatured ? null : safeUrl(profile.instagram_url)
+  const instagram = safeUrl(profile.instagram_url)
   const tiktok = safeUrl(profile.tiktok_url)
   const whatsapp = whatsappUrl(profile.whatsapp_phone)
+  const instagramPhotos = photoList(profile.instagram_photos)
+  const websitePhotos = photoList(profile.website_photos)
 
-  if (website) {
-    tiles.push({ track: 'website', href: website, label: profile.website_label || 'Página web', detail: hostFromUrl(website), icon: <Globe className="size-[18px]" strokeWidth={1.8} /> })
+  if (instagram && instagramPhotos.length > 0) {
+    features.push({
+      track: 'instagram',
+      href: instagram,
+      label: handleFromUrl(instagram) ?? 'Instagram',
+      detail: 'Instagram · Nuestros trabajos',
+      icon: <InstagramIcon className="size-[18px]" strokeWidth={2} />,
+      iconClass: 'ig-gradient text-white',
+      cta: 'Seguir',
+      photos: instagramPhotos,
+      portrait: true,
+    })
   }
-  if (instagram) {
+  if (website && websitePhotos.length > 0) {
+    features.push({
+      track: 'website',
+      href: website,
+      label: profile.website_label || 'Página web',
+      detail: hostFromUrl(website),
+      icon: websiteIcon(profile.website_label),
+      iconClass: 'bg-accent/10 text-accent ring-1 ring-accent/25 ring-inset',
+      cta: 'Visitar',
+      photos: websitePhotos,
+      portrait: false,
+    })
+  }
+
+  if (website && websitePhotos.length === 0) {
+    tiles.push({ track: 'website', href: website, label: profile.website_label || 'Página web', detail: hostFromUrl(website), icon: websiteIcon(profile.website_label) })
+  }
+  if (instagram && instagramPhotos.length === 0) {
     tiles.push({ track: 'instagram', href: instagram, label: 'Instagram', detail: handleFromUrl(instagram) ?? 'Síguenos', icon: <InstagramIcon className="size-[18px]" /> })
   }
   if (tiktok) {
@@ -38,16 +76,14 @@ function buildTiles(profile: Profile, instagramFeatured: boolean): Tile[] {
   if (whatsapp) {
     tiles.push({ track: 'whatsapp', href: whatsapp, label: 'WhatsApp', detail: 'Escríbenos', icon: <WhatsAppIcon className="size-[17px]" /> })
   }
-  return tiles
+  return { features, tiles }
 }
 
 export function Portal({ profile, brand, trackingDisabled }: Props) {
   const reviewUrl = safeUrl(profile.google_review_url)
   const bookingUrl = safeUrl(profile.booking_url)
   const bookingPhotos = photoList(profile.booking_photos)
-  const instagramUrl = safeUrl(profile.instagram_url)
-  const instagramPhotos = instagramUrl ? photoList(profile.instagram_photos) : []
-  const tiles = buildTiles(profile, instagramPhotos.length > 0)
+  const { features, tiles } = buildLinks(profile)
   const link = (track: TrackTarget) => ({ profileId: profile.id, track, trackingDisabled })
 
   return (
@@ -177,49 +213,50 @@ export function Portal({ profile, brand, trackingDisabled }: Props) {
       </div>
 
       {/* 4 · CTAs terciarios: bento grid */}
-      {(tiles.length > 0 || instagramPhotos.length > 0) && (
+      {(features.length > 0 || tiles.length > 0) && (
         <section className="mt-7 short:mt-5" aria-labelledby="connect-title">
           <h2 id="connect-title" className="mb-2.5 px-1 short:mb-2 text-[10.5px] font-medium tracking-[0.22em] text-zinc-500 uppercase">
             Conecta con nosotros
           </h2>
-          {instagramUrl && instagramPhotos.length > 0 && (
-            <TrackedLink
-              href={instagramUrl}
-              {...link('instagram')}
-              className="group block rounded-2xl border border-zinc-800/80 bg-zinc-900/80 p-3 backdrop-blur-md transition-transform duration-150 active:scale-[0.985]"
-            >
-              <span className="flex items-center gap-3">
-                <span className="ig-gradient grid size-9 shrink-0 place-items-center rounded-xl text-white">
-                  <InstagramIcon className="size-[18px]" strokeWidth={2} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] font-semibold text-zinc-100">
-                    {handleFromUrl(instagramUrl) ?? 'Instagram'}
+          {features.length > 0 && (
+            <div className="flex flex-col gap-2.5">
+              {features.map((feature) => (
+                <TrackedLink
+                  key={feature.track}
+                  href={feature.href}
+                  {...link(feature.track)}
+                  className="group block rounded-2xl border border-zinc-800/80 bg-zinc-900/80 p-3 backdrop-blur-md transition-transform duration-150 active:scale-[0.985]"
+                >
+                  <span className="flex items-center gap-3">
+                    <span className={`grid size-9 shrink-0 place-items-center rounded-xl ${feature.iconClass}`}>{feature.icon}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-semibold text-zinc-100">{feature.label}</span>
+                      <span className="block truncate text-[11px] text-zinc-500">{feature.detail}</span>
+                    </span>
+                    <span className="shrink-0 rounded-full bg-zinc-50 px-3.5 py-1.5 text-[12px] font-semibold text-zinc-950">
+                      {feature.cta}
+                    </span>
                   </span>
-                  <span className="block text-[11px] text-zinc-500">Instagram · Nuestros trabajos</span>
-                </span>
-                <span className="shrink-0 rounded-full bg-zinc-50 px-3.5 py-1.5 text-[12px] font-semibold text-zinc-950">
-                  Seguir
-                </span>
-              </span>
-              <span className={`mt-3 grid gap-1.5 ${PHOTO_COLS[instagramPhotos.length]}`}>
-                {instagramPhotos.map((src) => (
-                  <img
-                    key={src}
-                    src={src}
-                    alt=""
-                    width={360}
-                    height={480}
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-[3/4] w-full rounded-lg object-cover"
-                  />
-                ))}
-              </span>
-            </TrackedLink>
+                  <span className={`mt-3 grid gap-1.5 ${PHOTO_COLS[feature.photos.length]}`}>
+                    {feature.photos.map((src) => (
+                      <img
+                        key={src}
+                        src={src}
+                        alt=""
+                        width={360}
+                        height={feature.portrait ? 480 : 360}
+                        loading="lazy"
+                        decoding="async"
+                        className={`w-full rounded-lg object-cover ${feature.portrait ? 'aspect-[3/4]' : 'aspect-square'}`}
+                      />
+                    ))}
+                  </span>
+                </TrackedLink>
+              ))}
+            </div>
           )}
           {tiles.length > 0 && (
-            <div className={`grid grid-cols-2 gap-2.5 ${instagramPhotos.length > 0 ? 'mt-2.5' : ''}`}>
+            <div className={`grid grid-cols-2 gap-2.5 ${features.length > 0 ? 'mt-2.5' : ''}`}>
               {tiles.map((tile, i) => (
                 <TrackedLink
                   key={tile.track}

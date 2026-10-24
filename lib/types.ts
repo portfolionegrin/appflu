@@ -15,6 +15,8 @@ export type Profile = {
   website_url: string | null
   /** Texto de la baldosa de la web, p. ej. "Tienda de ropa". Por defecto "Página web". */
   website_label: string | null
+  /** Hasta 3 fotos para la tarjeta de la web (p. ej. prendas de la tienda). */
+  website_photos: string[] | null
   instagram_url: string | null
   tiktok_url: string | null
   whatsapp_phone: string | null

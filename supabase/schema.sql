@@ -23,6 +23,7 @@ create table if not exists public.profiles (
   booking_label     text default 'Reservar próxima cita',
   website_url       text,
   website_label     text,
+  website_photos    text[],
   instagram_url     text,
   tiktok_url        text,
   whatsapp_phone    text,
@@ -43,6 +44,7 @@ create table if not exists public.profiles (
 alter table public.profiles add column if not exists instagram_photos text[];
 alter table public.profiles add column if not exists booking_photos   text[];
 alter table public.profiles add column if not exists website_label    text;
+alter table public.profiles add column if not exists website_photos   text[];
 
 comment on column public.profiles.mode is
   '''portal'' muestra la interfaz; ''direct'' hace un 307 a direct_url (o a google_review_url si está vacío).';
@@ -50,6 +52,8 @@ comment on column public.profiles.whatsapp_phone is
   'Con prefijo internacional, solo dígitos o con +/espacios. Ej: +34 600 000 000';
 comment on column public.profiles.instagram_photos is
   'Hasta 3 URLs de fotos para la tarjeta de Instagram (https://... o /clients/<slug>/...).';
+comment on column public.profiles.website_photos is
+  'Hasta 3 URLs de fotos para la tarjeta de la web (p. ej. prendas de una tienda).';
 comment on column public.profiles.booking_photos is
   'Hasta 3 URLs de fotos para la tarjeta de reserva.';
 
@@ -173,7 +177,7 @@ revoke all on public.analytics_daily from anon, authenticated;
 -- Negocio ficticio de demostración
 insert into public.profiles (
   id, slug, business_name, subtitle, logo_url, theme_accent, mode, direct_url,
-  google_review_url, booking_url, booking_label, website_url, website_label,
+  google_review_url, booking_url, booking_label, website_url, website_label, website_photos,
   instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
 ) values (
   '8b1f6a52-3c4e-4f0a-9d7b-2a6c5e1f0a01',
@@ -188,6 +192,7 @@ insert into public.profiles (
   'https://booksy.com/es-es/000000_atelier-corte-barba_barberia_00000_madrid',
   'Reservar próxima cita en Booksy',
   'https://ateliercortebarba.example',
+  null,
   null,
   'https://www.instagram.com/ateliercortebarba.demo/',
   'https://www.tiktok.com/@ateliercortebarba.demo',
@@ -208,6 +213,7 @@ on conflict (slug) do update set
   booking_label     = excluded.booking_label,
   website_url       = excluded.website_url,
   website_label     = excluded.website_label,
+  website_photos    = excluded.website_photos,
   instagram_url     = excluded.instagram_url,
   tiktok_url        = excluded.tiktok_url,
   whatsapp_phone    = excluded.whatsapp_phone,
@@ -218,7 +224,7 @@ on conflict (slug) do update set
 -- Cliente real: NOVA Studio (Vecindario, Gran Canaria)
 insert into public.profiles (
   id, slug, business_name, subtitle, logo_url, theme_accent, mode, direct_url,
-  google_review_url, booking_url, booking_label, website_url, website_label,
+  google_review_url, booking_url, booking_label, website_url, website_label, website_photos,
   instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
 ) values (
   '3d2c9e7a-51b8-4c6f-8e0d-7f4a1b2c3d02',
@@ -234,6 +240,7 @@ insert into public.profiles (
   'Reservar próxima cita en Booksy',
   'https://novasupply.es',
   'Tienda de ropa',
+  array['/clients/nova-studio/shop-1.jpg', '/clients/nova-studio/shop-2.jpg', '/clients/nova-studio/shop-3.jpg'],
   'https://www.instagram.com/novastudio.gc/',
   null,
   null,
@@ -253,6 +260,7 @@ on conflict (slug) do update set
   booking_label     = excluded.booking_label,
   website_url       = excluded.website_url,
   website_label     = excluded.website_label,
+  website_photos    = excluded.website_photos,
   instagram_url     = excluded.instagram_url,
   tiktok_url        = excluded.tiktok_url,
   whatsapp_phone    = excluded.whatsapp_phone,
