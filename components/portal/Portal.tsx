@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { ArrowUpRight, BadgeCheck, CalendarDays, ChevronRight, Globe, Nfc, ShoppingBag, Star } from 'lucide-react'
 import type { Profile, TrackTarget } from '@/lib/types'
-import { brandUrl, handleFromUrl, hostFromUrl, photoList, safeAccent, safeUrl, whatsappUrl } from '@/lib/links'
+import { brandUrl, handleFromUrl, hostFromUrl, photoList, safeAccent, safeImage, safeUrl, whatsappUrl } from '@/lib/links'
 import { GoogleIcon, InstagramIcon, TikTokIcon, WhatsAppIcon } from './BrandIcons'
 import { TrackedLink } from './TrackedLink'
 
@@ -21,8 +21,11 @@ type Feature = Tile & { cta: string; iconClass: string; photos: string[]; portra
 
 const PHOTO_COLS = ['', 'grid-cols-1', 'grid-cols-2', 'grid-cols-3']
 
-function websiteIcon(label: string | null) {
-  const Icon = /tienda|shop|store/i.test(label ?? '') ? ShoppingBag : Globe
+/** Logo propio de la web si lo hay; si no, bolsa para tiendas y globo para el resto. */
+function websiteIcon(profile: Profile) {
+  const logo = safeImage(profile.website_logo_url)
+  if (logo) return <img src={logo} alt="" width={36} height={36} className="size-full object-cover" />
+  const Icon = /tienda|shop|store/i.test(profile.website_label ?? '') ? ShoppingBag : Globe
   return <Icon className="size-[18px]" strokeWidth={1.8} />
 }
 
@@ -56,8 +59,10 @@ function buildLinks(profile: Profile): { features: Feature[]; tiles: Tile[] } {
       href: website,
       label: profile.website_label || 'Página web',
       detail: hostFromUrl(website),
-      icon: websiteIcon(profile.website_label),
-      iconClass: 'bg-accent/10 text-accent ring-1 ring-accent/25 ring-inset',
+      icon: websiteIcon(profile),
+      iconClass: safeImage(profile.website_logo_url)
+        ? 'overflow-hidden bg-white'
+        : 'bg-accent/10 text-accent ring-1 ring-accent/25 ring-inset',
       cta: 'Visitar',
       photos: websitePhotos,
       portrait: false,
@@ -65,7 +70,7 @@ function buildLinks(profile: Profile): { features: Feature[]; tiles: Tile[] } {
   }
 
   if (website && websitePhotos.length === 0) {
-    tiles.push({ track: 'website', href: website, label: profile.website_label || 'Página web', detail: hostFromUrl(website), icon: websiteIcon(profile.website_label) })
+    tiles.push({ track: 'website', href: website, label: profile.website_label || 'Página web', detail: hostFromUrl(website), icon: websiteIcon(profile) })
   }
   if (instagram && instagramPhotos.length === 0) {
     tiles.push({ track: 'instagram', href: instagram, label: 'Instagram', detail: handleFromUrl(instagram) ?? 'Síguenos', icon: <InstagramIcon className="size-[18px]" /> })
@@ -270,7 +275,7 @@ export function Portal({ profile, brand, trackingDisabled }: Props) {
                     tiles.length % 2 === 1 && i === tiles.length - 1 ? 'col-span-2' : ''
                   }`}
                 >
-                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-zinc-800/80 text-zinc-100 ring-1 ring-white/[0.06] ring-inset">
+                  <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-zinc-800/80 text-zinc-100 ring-1 ring-white/[0.06] ring-inset">
                     {tile.icon}
                   </span>
                   <span className="min-w-0">

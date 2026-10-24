@@ -52,7 +52,12 @@ export function brandUrl(base: string, slug: string): string {
   }
 }
 
-/** Hasta 3 fotos: rutas propias (/clients/...) o URLs https. */
+/** Imagen propia (/clients/...) o URL https; cualquier otra cosa se descarta. */
+export function safeImage(src: string | null | undefined): string | null {
+  return src && (/^\/(?!\/)/.test(src) || src.startsWith('https://')) ? src : null
+}
+
+/** Hasta 3 fotos válidas. */
 export function photoList(list: string[] | null | undefined): string[] {
-  return (list ?? []).filter((src) => /^\/(?!\/)/.test(src) || src.startsWith('https://')).slice(0, 3)
+  return (list ?? []).filter((src) => safeImage(src)).slice(0, 3)
 }
