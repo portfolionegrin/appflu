@@ -197,9 +197,13 @@ export function Portal({ profile, brand, trackingDisabled }: Props) {
               </span>
             )}
             <span className="flex min-h-16 items-center gap-3.5 px-4 py-2.5 short:min-h-14">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent ring-1 ring-accent/25 ring-inset">
-                <CalendarDays className="size-5" strokeWidth={1.8} />
-              </span>
+              {hostFromUrl(bookingUrl).endsWith('booksy.com') ? (
+                <img src="/brands/booksy.png" alt="Booksy" width={40} height={40} className="size-10 shrink-0 rounded-xl" />
+              ) : (
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent ring-1 ring-accent/25 ring-inset">
+                  <CalendarDays className="size-5" strokeWidth={1.8} />
+                </span>
+              )}
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] leading-snug font-semibold text-balance text-zinc-50">
                   {profile.booking_label || 'Reservar próxima cita'}
