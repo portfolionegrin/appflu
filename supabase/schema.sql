@@ -207,7 +207,7 @@ insert into public.profiles (
   'nova-studio',
   'NOVA Studio',
   'Vecindario · Gran Canaria',
-  null,
+  '/logos/nova-studio.png',
   '#C5A059',
   'portal',
   null,

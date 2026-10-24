@@ -2,9 +2,21 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  // La web estática de siempre vive en /public; la portada sigue siendo index.html.
   async rewrites() {
-    return [{ source: '/', destination: '/index.html' }]
+    return {
+      // Subdominio por negocio: nova-studio.appflu.es → portal de "nova-studio".
+      // Se resuelve en el enrutador, sin ejecutar código ni tocar la base de datos.
+      beforeFiles: [
+        {
+          source: '/',
+          has: [{ type: 'host', value: '(?<slug>(?!www\\.)[a-z0-9-]+)\\.appflu\\.es' }],
+          destination: '/p/:slug',
+        },
+      ],
+      // La web estática de siempre vive en /public; la portada sigue siendo index.html.
+      afterFiles: [{ source: '/', destination: '/index.html' }],
+      fallback: [],
+    }
   },
   async headers() {
     return [

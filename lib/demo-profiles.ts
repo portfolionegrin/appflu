@@ -26,7 +26,7 @@ export const DEMO_PROFILES: Record<string, Profile> = {
     slug: 'nova-studio',
     business_name: 'NOVA Studio',
     subtitle: 'Vecindario · Gran Canaria',
-    logo_url: null,
+    logo_url: '/logos/nova-studio.png',
     theme_accent: '#C5A059',
     mode: 'portal',
     direct_url: null,

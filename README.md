@@ -91,7 +91,7 @@ values ('barberia-imperial', 'Barbería Imperial', 'Madrid · Desde 1998',
         'https://www.instagram.com/barberiaimperial/');
 ```
 
-Graba en el chip NFC: `https://appflu.es/p/barberia-imperial`.
+Graba en el chip NFC: `https://barberia-imperial.appflu.es` (o `…/p/barberia-imperial`).
 
 Para que la placa abra directamente Google Reviews sin interfaz:
 
@@ -114,26 +114,26 @@ select * from analytics_daily where slug = 'nova-studio' order by day desc;
 Los previsualizadores de enlaces (WhatsApp, Telegram, Slack…) y los bots no cuentan
 como escaneos.
 
-## Deploy en Vercel con appflu.es
+## Deploy en Vercel con subdominios
 
-1. https://vercel.com/new → importa `portfolionegrin/appflu`. Framework: Next.js
-   (se detecta solo). No hace falta tocar nada más.
-2. Settings → Environment Variables → añade las de la tabla de arriba (opcional
-   para la primera prueba) → Redeploy.
-3. Settings → Domains → añade `appflu.es` y `www.appflu.es`. Vercel te dará los
-   registros DNS exactos; normalmente:
+`appflu.es` sigue en GitHub Pages sin cambios. Los portales van en subdominios
+servidos por Vercel: **`<slug>.appflu.es`** abre directamente el portal de ese
+negocio (por ejemplo `nova-studio.appflu.es`). La regla está en `next.config.ts`
+y no ejecuta código: la resuelve el enrutador.
+
+1. **Crear el proyecto** (un clic, copia el código a tu GitHub y lo despliega):
+   https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fportfolionegrin%2Fappflu%2Ftree%2Fccr-669ad81f-9a6wmy&project-name=appflu-nfc&repository-name=appflu-nfc
+2. **Añadir el subdominio:** proyecto en Vercel → Settings → Domains → escribe
+   `nova-studio.appflu.es` → Add.
+3. **DNS:** Vercel te enseña un registro `CNAME`. Créalo en el panel de tu dominio
+   (donde están los registros de GitHub Pages):
 
    | Tipo | Nombre | Valor |
    |---|---|---|
-   | A | @ | `76.76.21.21` |
-   | CNAME | www | `cname.vercel-dns.com` |
+   | CNAME | nova-studio | el que indique Vercel (normalmente `cname.vercel-dns.com`) |
 
-   Borra en tu proveedor de dominio los 4 registros A antiguos de GitHub Pages
-   (`185.199.108-111.153`).
-4. En GitHub → Settings → Pages, desactiva Pages para que no compita por el dominio.
-
-Producción se despliega desde `main`: mientras los cambios estén en otra rama,
-Vercel los publica como preview en una URL `*.vercel.app`.
+Para cada negocio nuevo: alta en Supabase con su `slug` + pasos 2 y 3 con
+`<slug>.appflu.es`. Graba ese mismo enlace en el chip NFC.
 
 ## Web estática (public/)
 
