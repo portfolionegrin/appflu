@@ -16,6 +16,10 @@ export type Profile = {
   instagram_url: string | null
   tiktok_url: string | null
   whatsapp_phone: string | null
+  /** Hasta 3 fotos para la tarjeta de Instagram. */
+  instagram_photos: string[] | null
+  /** Hasta 3 fotos para la tarjeta de reserva. */
+  booking_photos: string[] | null
   is_active: boolean
 }
 

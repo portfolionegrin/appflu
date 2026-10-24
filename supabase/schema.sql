@@ -25,6 +25,8 @@ create table if not exists public.profiles (
   instagram_url     text,
   tiktok_url        text,
   whatsapp_phone    text,
+  instagram_photos  text[],
+  booking_photos    text[],
   is_active         boolean not null default true,
   created_at        timestamptz not null default now(),
   updated_at        timestamptz not null default now(),
@@ -36,10 +38,18 @@ create table if not exists public.profiles (
   constraint profiles_direct_has_url  check (mode <> 'direct' or coalesce(direct_url, google_review_url) is not null)
 );
 
+-- Si creaste la tabla con una versión anterior de este script:
+alter table public.profiles add column if not exists instagram_photos text[];
+alter table public.profiles add column if not exists booking_photos   text[];
+
 comment on column public.profiles.mode is
   '''portal'' muestra la interfaz; ''direct'' hace un 307 a direct_url (o a google_review_url si está vacío).';
 comment on column public.profiles.whatsapp_phone is
   'Con prefijo internacional, solo dígitos o con +/espacios. Ej: +34 600 000 000';
+comment on column public.profiles.instagram_photos is
+  'Hasta 3 URLs de fotos para la tarjeta de Instagram (https://... o /clients/<slug>/...).';
+comment on column public.profiles.booking_photos is
+  'Hasta 3 URLs de fotos para la tarjeta de reserva.';
 
 -- La restricción UNIQUE ya crea un índice B-tree sobre slug. Este índice
 -- parcial cubre exactamente la consulta del portal (slug + is_active).
@@ -162,7 +172,7 @@ revoke all on public.analytics_daily from anon, authenticated;
 insert into public.profiles (
   id, slug, business_name, subtitle, logo_url, theme_accent, mode, direct_url,
   google_review_url, booking_url, booking_label, website_url,
-  instagram_url, tiktok_url, whatsapp_phone, is_active
+  instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
 ) values (
   '8b1f6a52-3c4e-4f0a-9d7b-2a6c5e1f0a01',
   'atelier-corte-barba',
@@ -179,6 +189,8 @@ insert into public.profiles (
   'https://www.instagram.com/ateliercortebarba.demo/',
   'https://www.tiktok.com/@ateliercortebarba.demo',
   '+34 600 000 000',
+  null,
+  null,
   true
 )
 on conflict (slug) do update set
@@ -195,13 +207,15 @@ on conflict (slug) do update set
   instagram_url     = excluded.instagram_url,
   tiktok_url        = excluded.tiktok_url,
   whatsapp_phone    = excluded.whatsapp_phone,
+  instagram_photos  = excluded.instagram_photos,
+  booking_photos    = excluded.booking_photos,
   is_active         = excluded.is_active;
 
 -- Cliente real: NOVA Studio (Vecindario, Gran Canaria)
 insert into public.profiles (
   id, slug, business_name, subtitle, logo_url, theme_accent, mode, direct_url,
   google_review_url, booking_url, booking_label, website_url,
-  instagram_url, tiktok_url, whatsapp_phone, is_active
+  instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
 ) values (
   '3d2c9e7a-51b8-4c6f-8e0d-7f4a1b2c3d02',
   'nova-studio',
@@ -211,13 +225,15 @@ insert into public.profiles (
   '#C5A059',
   'portal',
   null,
-  'https://share.google/5xNBIgmZlHHxQmL14',
+  'https://search.google.com/local/writereview?placeid=ChIJHVeDXOOfQAwRMTEKo4xrOvM',
   'https://share.google/5ixOGwd1RSKAVXVIb',
   'Reservar próxima cita en Booksy',
   null,
   'https://www.instagram.com/novastudio.gc/',
   null,
   null,
+  array['/clients/nova-studio/ig-1.jpg', '/clients/nova-studio/ig-2.jpg', '/clients/nova-studio/ig-3.jpg'],
+  array['/clients/nova-studio/booking-1.jpg', '/clients/nova-studio/booking-2.jpg', '/clients/nova-studio/booking-3.jpg'],
   true
 )
 on conflict (slug) do update set
@@ -234,4 +250,6 @@ on conflict (slug) do update set
   instagram_url     = excluded.instagram_url,
   tiktok_url        = excluded.tiktok_url,
   whatsapp_phone    = excluded.whatsapp_phone,
+  instagram_photos  = excluded.instagram_photos,
+  booking_photos    = excluded.booking_photos,
   is_active         = excluded.is_active;

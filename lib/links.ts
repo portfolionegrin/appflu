@@ -51,3 +51,8 @@ export function brandUrl(base: string, slug: string): string {
     return base
   }
 }
+
+/** Hasta 3 fotos: rutas propias (/clients/...) o URLs https. */
+export function photoList(list: string[] | null | undefined): string[] {
+  return (list ?? []).filter((src) => /^\/(?!\/)/.test(src) || src.startsWith('https://')).slice(0, 3)
+}

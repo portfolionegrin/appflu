@@ -19,6 +19,8 @@ export const DEMO_PROFILES: Record<string, Profile> = {
     instagram_url: 'https://www.instagram.com/ateliercortebarba.demo/',
     tiktok_url: 'https://www.tiktok.com/@ateliercortebarba.demo',
     whatsapp_phone: '+34 600 000 000',
+    instagram_photos: null,
+    booking_photos: null,
     is_active: true,
   },
   'nova-studio': {
@@ -30,13 +32,23 @@ export const DEMO_PROFILES: Record<string, Profile> = {
     theme_accent: '#C5A059',
     mode: 'portal',
     direct_url: null,
-    google_review_url: 'https://share.google/5xNBIgmZlHHxQmL14',
+    google_review_url: 'https://search.google.com/local/writereview?placeid=ChIJHVeDXOOfQAwRMTEKo4xrOvM',
     booking_url: 'https://share.google/5ixOGwd1RSKAVXVIb',
     booking_label: 'Reservar próxima cita en Booksy',
     website_url: null,
     instagram_url: 'https://www.instagram.com/novastudio.gc/',
     tiktok_url: null,
     whatsapp_phone: null,
+    instagram_photos: [
+      '/clients/nova-studio/ig-1.jpg',
+      '/clients/nova-studio/ig-2.jpg',
+      '/clients/nova-studio/ig-3.jpg',
+    ],
+    booking_photos: [
+      '/clients/nova-studio/booking-1.jpg',
+      '/clients/nova-studio/booking-2.jpg',
+      '/clients/nova-studio/booking-3.jpg',
+    ],
     is_active: true,
   },
 }

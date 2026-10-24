@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { ArrowUpRight, BadgeCheck, CalendarDays, ChevronRight, Globe, Nfc, Star } from 'lucide-react'
 import type { Profile, TrackTarget } from '@/lib/types'
-import { brandUrl, handleFromUrl, hostFromUrl, safeAccent, safeUrl, whatsappUrl } from '@/lib/links'
+import { brandUrl, handleFromUrl, hostFromUrl, photoList, safeAccent, safeUrl, whatsappUrl } from '@/lib/links'
 import { GoogleIcon, InstagramIcon, TikTokIcon, WhatsAppIcon } from './BrandIcons'
 import { TrackedLink } from './TrackedLink'
 
@@ -16,10 +16,13 @@ type Props = {
 
 type Tile = { track: TrackTarget; href: string; label: string; detail: string; icon: ReactNode }
 
-function buildTiles(profile: Profile): Tile[] {
+const PHOTO_COLS = ['', 'grid-cols-1', 'grid-cols-2', 'grid-cols-3']
+
+/** Instagram sale como tarjeta grande con fotos cuando las hay; si no, como baldosa. */
+function buildTiles(profile: Profile, instagramFeatured: boolean): Tile[] {
   const tiles: Tile[] = []
   const website = safeUrl(profile.website_url)
-  const instagram = safeUrl(profile.instagram_url)
+  const instagram = instagramFeatured ? null : safeUrl(profile.instagram_url)
   const tiktok = safeUrl(profile.tiktok_url)
   const whatsapp = whatsappUrl(profile.whatsapp_phone)
 
@@ -41,7 +44,10 @@ function buildTiles(profile: Profile): Tile[] {
 export function Portal({ profile, brand, trackingDisabled }: Props) {
   const reviewUrl = safeUrl(profile.google_review_url)
   const bookingUrl = safeUrl(profile.booking_url)
-  const tiles = buildTiles(profile)
+  const bookingPhotos = photoList(profile.booking_photos)
+  const instagramUrl = safeUrl(profile.instagram_url)
+  const instagramPhotos = instagramUrl ? photoList(profile.instagram_photos) : []
+  const tiles = buildTiles(profile, instagramPhotos.length > 0)
   const link = (track: TrackTarget) => ({ profileId: profile.id, track, trackingDisabled })
 
   return (
@@ -140,48 +146,100 @@ export function Portal({ profile, brand, trackingDisabled }: Props) {
           <TrackedLink
             href={bookingUrl}
             {...link('booksy')}
-            className="group flex min-h-16 items-center gap-3.5 rounded-2xl py-2.5 short:min-h-14 border border-accent/30 bg-zinc-900/80 px-4 backdrop-blur-md transition-transform duration-150 active:scale-[0.985]"
+            className="group block overflow-hidden rounded-2xl border border-accent/30 bg-zinc-900/80 backdrop-blur-md transition-transform duration-150 active:scale-[0.985]"
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent ring-1 ring-accent/25 ring-inset">
-              <CalendarDays className="size-5" strokeWidth={1.8} />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[15px] leading-snug font-semibold text-balance text-zinc-50">
-                {profile.booking_label || 'Reservar próxima cita'}
+            {bookingPhotos.length > 0 && (
+              <span className={`relative grid gap-0.5 ${PHOTO_COLS[bookingPhotos.length]}`}>
+                {bookingPhotos.map((src) => (
+                  // <img> y no next/image: fotos ya optimizadas, sin pasar por el optimizador
+                  <img key={src} src={src} alt="" width={360} height={300} decoding="async" className="aspect-[4/3] w-full object-cover" />
+                ))}
+                <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-zinc-900/90 to-transparent" />
+                <span className="absolute top-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium tracking-wide text-zinc-100 backdrop-blur-sm">
+                  Reserva online · 24 h
+                </span>
               </span>
-              <span className="block text-[12px] text-zinc-500">Elige día y hora · sin llamadas</span>
+            )}
+            <span className="flex min-h-16 items-center gap-3.5 px-4 py-2.5 short:min-h-14">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent ring-1 ring-accent/25 ring-inset">
+                <CalendarDays className="size-5" strokeWidth={1.8} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] leading-snug font-semibold text-balance text-zinc-50">
+                  {profile.booking_label || 'Reservar próxima cita'}
+                </span>
+                <span className="block text-[12px] text-zinc-500">Elige día y hora · sin llamadas</span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-zinc-500 transition-transform group-active:translate-x-0.5" />
             </span>
-            <ChevronRight className="size-5 shrink-0 text-zinc-500 transition-transform group-active:translate-x-0.5" />
           </TrackedLink>
         )}
       </div>
 
       {/* 4 · CTAs terciarios: bento grid */}
-      {tiles.length > 0 && (
+      {(tiles.length > 0 || instagramPhotos.length > 0) && (
         <section className="mt-7 short:mt-5" aria-labelledby="connect-title">
           <h2 id="connect-title" className="mb-2.5 px-1 short:mb-2 text-[10.5px] font-medium tracking-[0.22em] text-zinc-500 uppercase">
             Conecta con nosotros
           </h2>
-          <div className="grid grid-cols-2 gap-2.5">
-            {tiles.map((tile, i) => (
-              <TrackedLink
-                key={tile.track}
-                href={tile.href}
-                {...link(tile.track)}
-                className={`flex h-[60px] min-w-0 short:h-14 items-center gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/80 px-3.5 backdrop-blur-md transition-transform duration-150 active:scale-[0.97] ${
-                  tiles.length % 2 === 1 && i === tiles.length - 1 ? 'col-span-2' : ''
-                }`}
-              >
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-zinc-800/80 text-zinc-100 ring-1 ring-white/[0.06] ring-inset">
-                  {tile.icon}
+          {instagramUrl && instagramPhotos.length > 0 && (
+            <TrackedLink
+              href={instagramUrl}
+              {...link('instagram')}
+              className="group block rounded-2xl border border-zinc-800/80 bg-zinc-900/80 p-3 backdrop-blur-md transition-transform duration-150 active:scale-[0.985]"
+            >
+              <span className="flex items-center gap-3">
+                <span className="ig-gradient grid size-9 shrink-0 place-items-center rounded-xl text-white">
+                  <InstagramIcon className="size-[18px]" strokeWidth={2} />
                 </span>
-                <span className="min-w-0">
-                  <span className="block text-[13px] font-semibold text-zinc-100">{tile.label}</span>
-                  <span className="block truncate text-[11px] text-zinc-500">{tile.detail}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-semibold text-zinc-100">
+                    {handleFromUrl(instagramUrl) ?? 'Instagram'}
+                  </span>
+                  <span className="block text-[11px] text-zinc-500">Instagram · Nuestros trabajos</span>
                 </span>
-              </TrackedLink>
-            ))}
-          </div>
+                <span className="shrink-0 rounded-full bg-zinc-50 px-3.5 py-1.5 text-[12px] font-semibold text-zinc-950">
+                  Seguir
+                </span>
+              </span>
+              <span className={`mt-3 grid gap-1.5 ${PHOTO_COLS[instagramPhotos.length]}`}>
+                {instagramPhotos.map((src) => (
+                  <img
+                    key={src}
+                    src={src}
+                    alt=""
+                    width={360}
+                    height={360}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-square w-full rounded-lg object-cover"
+                  />
+                ))}
+              </span>
+            </TrackedLink>
+          )}
+          {tiles.length > 0 && (
+            <div className={`grid grid-cols-2 gap-2.5 ${instagramPhotos.length > 0 ? 'mt-2.5' : ''}`}>
+              {tiles.map((tile, i) => (
+                <TrackedLink
+                  key={tile.track}
+                  href={tile.href}
+                  {...link(tile.track)}
+                  className={`flex h-[60px] min-w-0 short:h-14 items-center gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/80 px-3.5 backdrop-blur-md transition-transform duration-150 active:scale-[0.97] ${
+                    tiles.length % 2 === 1 && i === tiles.length - 1 ? 'col-span-2' : ''
+                  }`}
+                >
+                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-zinc-800/80 text-zinc-100 ring-1 ring-white/[0.06] ring-inset">
+                    {tile.icon}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-semibold text-zinc-100">{tile.label}</span>
+                    <span className="block truncate text-[11px] text-zinc-500">{tile.detail}</span>
+                  </span>
+                </TrackedLink>
+              ))}
+            </div>
+          )}
         </section>
       )}
 

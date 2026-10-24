@@ -128,3 +128,8 @@ body {
     animation: logo-spin 7s linear infinite;
   }
 }
+
+/* Degradado del icono de Instagram */
+@utility ig-gradient {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+}
