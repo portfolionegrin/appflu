@@ -27,7 +27,7 @@ function buildTiles(profile: Profile, instagramFeatured: boolean): Tile[] {
   const whatsapp = whatsappUrl(profile.whatsapp_phone)
 
   if (website) {
-    tiles.push({ track: 'website', href: website, label: 'Página web', detail: hostFromUrl(website), icon: <Globe className="size-[18px]" strokeWidth={1.8} /> })
+    tiles.push({ track: 'website', href: website, label: profile.website_label || 'Página web', detail: hostFromUrl(website), icon: <Globe className="size-[18px]" strokeWidth={1.8} /> })
   }
   if (instagram) {
     tiles.push({ track: 'instagram', href: instagram, label: 'Instagram', detail: handleFromUrl(instagram) ?? 'Síguenos', icon: <InstagramIcon className="size-[18px]" /> })
@@ -209,10 +209,10 @@ export function Portal({ profile, brand, trackingDisabled }: Props) {
                     src={src}
                     alt=""
                     width={360}
-                    height={360}
+                    height={480}
                     loading="lazy"
                     decoding="async"
-                    className="aspect-square w-full rounded-lg object-cover"
+                    className="aspect-[3/4] w-full rounded-lg object-cover"
                   />
                 ))}
               </span>

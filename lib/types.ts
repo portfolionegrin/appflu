@@ -13,6 +13,8 @@ export type Profile = {
   booking_url: string | null
   booking_label: string | null
   website_url: string | null
+  /** Texto de la baldosa de la web, p. ej. "Tienda de ropa". Por defecto "Página web". */
+  website_label: string | null
   instagram_url: string | null
   tiktok_url: string | null
   whatsapp_phone: string | null
