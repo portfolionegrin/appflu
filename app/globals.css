@@ -51,6 +51,12 @@ body {
   );
 }
 
+/* ---------- Logotipo horizontal: halo cálido muy suave ---------- */
+@utility wordmark-glow {
+  filter: drop-shadow(0 0 22px color-mix(in oklab, var(--accent) 38%, transparent))
+    drop-shadow(0 1px 1px rgb(0 0 0 / 0.6));
+}
+
 /* ---------- Borde iluminado de la tarjeta de reseñas ---------- */
 @utility review-border {
   background: linear-gradient(

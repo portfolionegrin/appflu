@@ -89,6 +89,7 @@ export function Portal({ profile, brand, trackingDisabled }: Props) {
   const bookingUrl = safeUrl(profile.booking_url)
   const bookingPhotos = photoList(profile.booking_photos)
   const { features, tiles } = buildLinks(profile)
+  const wordmark = safeImage(profile.wordmark_url)
   const link = (track: TrackTarget) => ({ profileId: profile.id, track, trackingDisabled })
 
   return (
@@ -100,31 +101,57 @@ export function Portal({ profile, brand, trackingDisabled }: Props) {
 
       {/* 1 · Header del local */}
       <header className="flex flex-col items-center text-center">
-        <div className="relative size-[84px] short:size-16">
-          <div className="logo-ring logo-spin absolute -inset-[1.5px] rounded-full opacity-90" />
-          <div className="relative grid size-full place-items-center overflow-hidden rounded-full bg-zinc-950 shadow-[inset_0_0_0_1px_rgb(0_0_0)]">
-            {profile.logo_url ? (
-              // <img> y no next/image: logos de cualquier dominio, sin pasar por el optimizador
-              <img
-                src={profile.logo_url}
-                alt={`Logo de ${profile.business_name}`}
-                width={84}
-                height={84}
-                fetchPriority="high"
-                className="size-full object-cover"
-              />
-            ) : (
-              <span className="font-display text-[2.4rem] font-semibold leading-none text-accent short:text-[1.9rem]">
-                {profile.business_name.trim().charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
-        </div>
+        {wordmark ? (
+          // Logotipo horizontal: sustituye al logo redondo y al nombre escrito
+          <h1 className="pt-3 short:pt-1">
+            <img
+              src={wordmark}
+              alt={profile.business_name}
+              width={556}
+              height={193}
+              fetchPriority="high"
+              className="wordmark-glow h-auto w-[236px] short:w-[196px]"
+            />
+          </h1>
+        ) : (
+          <>
+            <div className="relative size-[84px] short:size-16">
+              <div className="logo-ring logo-spin absolute -inset-[1.5px] rounded-full opacity-90" />
+              <div className="relative grid size-full place-items-center overflow-hidden rounded-full bg-zinc-950 shadow-[inset_0_0_0_1px_rgb(0_0_0)]">
+                {profile.logo_url ? (
+                  // <img> y no next/image: logos de cualquier dominio, sin pasar por el optimizador
+                  <img
+                    src={profile.logo_url}
+                    alt={`Logo de ${profile.business_name}`}
+                    width={84}
+                    height={84}
+                    fetchPriority="high"
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <span className="font-display text-[2.4rem] font-semibold leading-none text-accent short:text-[1.9rem]">
+                    {profile.business_name.trim().charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+            </div>
 
-        <h1 className="mt-4 font-display text-[2rem] font-semibold short:mt-3 short:text-[1.7rem] leading-[1.05] tracking-[-0.01em] text-zinc-50 text-balance">
-          {profile.business_name}
-        </h1>
-        {profile.subtitle && <p className="mt-1.5 text-[13px] text-zinc-400">{profile.subtitle}</p>}
+            <h1 className="mt-4 font-display text-[2rem] font-semibold short:mt-3 short:text-[1.7rem] leading-[1.05] tracking-[-0.01em] text-zinc-50 text-balance">
+              {profile.business_name}
+            </h1>
+          </>
+        )}
+        {profile.subtitle && (
+          <p
+            className={
+              wordmark
+                ? 'mt-4 text-[11px] font-medium tracking-[0.28em] text-zinc-400 uppercase short:mt-3'
+                : 'mt-1.5 text-[13px] text-zinc-400'
+            }
+          >
+            {profile.subtitle}
+          </p>
+        )}
 
         <p className="mt-3 inline-flex items-center gap-1.5 rounded-full short:mt-2.5 border border-white/[0.08] bg-white/[0.04] py-1 pr-2.5 pl-2 text-[11px] font-medium tracking-wide text-zinc-300">
           <span className="relative flex size-1.5">

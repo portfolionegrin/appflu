@@ -15,6 +15,7 @@ create table if not exists public.profiles (
   business_name     text not null,
   subtitle          text,
   logo_url          text,
+  wordmark_url      text,
   theme_accent      text,
   mode              text not null default 'portal',
   direct_url        text,
@@ -47,6 +48,7 @@ alter table public.profiles add column if not exists booking_photos   text[];
 alter table public.profiles add column if not exists website_label    text;
 alter table public.profiles add column if not exists website_photos   text[];
 alter table public.profiles add column if not exists website_logo_url text;
+alter table public.profiles add column if not exists wordmark_url     text;
 
 comment on column public.profiles.mode is
   '''portal'' muestra la interfaz; ''direct'' hace un 307 a direct_url (o a google_review_url si está vacío).';
@@ -56,6 +58,8 @@ comment on column public.profiles.instagram_photos is
   'Hasta 3 URLs de fotos para la tarjeta de Instagram (https://... o /clients/<slug>/...).';
 comment on column public.profiles.website_photos is
   'Hasta 3 URLs de fotos para la tarjeta de la web (p. ej. prendas de una tienda).';
+comment on column public.profiles.wordmark_url is
+  'Logotipo horizontal en claro (PNG transparente). Sustituye al logo redondo y al nombre en la cabecera.';
 comment on column public.profiles.website_logo_url is
   'Logo cuadrado de la web o tienda; sustituye al icono genérico.';
 comment on column public.profiles.booking_photos is
@@ -180,7 +184,7 @@ revoke all on public.analytics_daily from anon, authenticated;
 
 -- Negocio ficticio de demostración
 insert into public.profiles (
-  id, slug, business_name, subtitle, logo_url, theme_accent, mode, direct_url,
+  id, slug, business_name, subtitle, logo_url, wordmark_url, theme_accent, mode, direct_url,
   google_review_url, booking_url, booking_label, website_url, website_label, website_photos, website_logo_url,
   instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
 ) values (
@@ -188,6 +192,7 @@ insert into public.profiles (
   'atelier-corte-barba',
   'Atelier Corte & Barba',
   'Barbería de autor · Desde 2016',
+  null,
   null,
   '#D4AF37',
   'portal',
@@ -210,6 +215,7 @@ on conflict (slug) do update set
   business_name     = excluded.business_name,
   subtitle          = excluded.subtitle,
   logo_url          = excluded.logo_url,
+  wordmark_url      = excluded.wordmark_url,
   theme_accent      = excluded.theme_accent,
   mode              = excluded.mode,
   direct_url        = excluded.direct_url,
@@ -229,7 +235,7 @@ on conflict (slug) do update set
 
 -- Cliente real: NOVA Studio (Vecindario, Gran Canaria)
 insert into public.profiles (
-  id, slug, business_name, subtitle, logo_url, theme_accent, mode, direct_url,
+  id, slug, business_name, subtitle, logo_url, wordmark_url, theme_accent, mode, direct_url,
   google_review_url, booking_url, booking_label, website_url, website_label, website_photos, website_logo_url,
   instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
 ) values (
@@ -238,6 +244,7 @@ insert into public.profiles (
   'NOVA Studio',
   'Vecindario · Gran Canaria',
   '/logos/nova-studio.png',
+  '/clients/nova-studio/wordmark.png',
   '#C5A059',
   'portal',
   null,
@@ -259,6 +266,7 @@ on conflict (slug) do update set
   business_name     = excluded.business_name,
   subtitle          = excluded.subtitle,
   logo_url          = excluded.logo_url,
+  wordmark_url      = excluded.wordmark_url,
   theme_accent      = excluded.theme_accent,
   mode              = excluded.mode,
   direct_url        = excluded.direct_url,

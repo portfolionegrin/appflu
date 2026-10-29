@@ -6,6 +6,8 @@ export type Profile = {
   business_name: string
   subtitle: string | null
   logo_url: string | null
+  /** Logotipo horizontal en claro. Si existe, sustituye al logo redondo y al nombre. */
+  wordmark_url: string | null
   theme_accent: string | null
   mode: ProfileMode
   direct_url: string | null
