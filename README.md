@@ -4,8 +4,9 @@ Plataforma multi-tenant que se abre al acercar el móvil a un soporte de madera 
 olivo y resina con chip NFC. Cada negocio tiene su portal en `appflu.es/p/<slug>`.
 
 - **Next.js 16 (App Router) + Tailwind CSS 4 + Supabase + lucide-react**
-- Modo `portal`: interfaz "Obsidian & Olive" con jerarquía de conversión
-  (Reseña Google → Reserva Booksy → Web/RRSS → pie B2B).
+- Modo `portal`: bio-link "Dark Mode Premium" (fondo carbón, tarjetas de cristal,
+  Plus Jakarta Sans): cabecera → botón estrella sólido → tarjetas secundarias
+  (web/tienda, reseñas, redes) → fila de iconos (Instagram, Maps, compartir…) → pie B2B.
 - Modo `direct`: redirect **307** desde el servidor a Google Reviews, sin interfaz.
 - Analítica de escaneos y clics sin IP ni cookies (RGPD), registrada **después**
   de enviar la respuesta: ni el redirect ni los botones esperan a la base de datos.
@@ -97,6 +98,13 @@ Para que la placa abra directamente Google Reviews sin interfaz:
 
 ```sql
 update profiles set mode = 'direct' where slug = 'barberia-imperial';
+```
+
+El botón estrella es la reserva por defecto. Para destacar la reseña de Google
+(por ejemplo, si la placa está junto a la caja):
+
+```sql
+update profiles set primary_action = 'review' where slug = 'barberia-imperial';
 ```
 
 Los cambios tardan como máximo 60 s en verse (caché del perfil).

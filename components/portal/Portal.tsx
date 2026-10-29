@@ -1,8 +1,19 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { ArrowUpRight, BadgeCheck, CalendarDays, ChevronRight, Globe, Nfc, ShoppingBag, Star } from 'lucide-react'
+import { ArrowUpRight, BadgeCheck, CalendarDays, Globe, MapPin, Nfc, ShoppingBag, Star } from 'lucide-react'
 import type { Profile, TrackTarget } from '@/lib/types'
-import { brandUrl, handleFromUrl, hostFromUrl, photoList, safeAccent, safeImage, safeUrl, whatsappUrl } from '@/lib/links'
+import {
+  brandUrl,
+  handleFromUrl,
+  hostFromUrl,
+  mapsUrl,
+  photoList,
+  safeAccent,
+  safeImage,
+  safeUrl,
+  whatsappUrl,
+} from '@/lib/links'
 import { GoogleIcon, InstagramIcon, TikTokIcon, WhatsAppIcon } from './BrandIcons'
+import { ShareButton } from './ShareButton'
 import { TrackedLink } from './TrackedLink'
 
 export type Brand = { name: string; url: string }
@@ -14,317 +25,354 @@ type Props = {
   trackingDisabled?: boolean
 }
 
-type Tile = { track: TrackTarget; href: string; label: string; detail: string; icon: ReactNode }
-
-/** Tarjeta grande con hasta 3 fotos (Instagram, tienda...). */
-type Feature = Tile & { cta: string; iconClass: string; photos: string[]; portrait: boolean }
-
-const PHOTO_COLS = ['', 'grid-cols-1', 'grid-cols-2', 'grid-cols-3']
-
-/** Logo propio de la web si lo hay; si no, bolsa para tiendas y globo para el resto. */
-function websiteIcon(profile: Profile) {
-  const logo = safeImage(profile.website_logo_url)
-  if (logo) return <img src={logo} alt="" width={36} height={36} className="size-full object-cover" />
-  const Icon = /tienda|shop|store/i.test(profile.website_label ?? '') ? ShoppingBag : Globe
-  return <Icon className="size-[18px]" strokeWidth={1.8} />
+/** Un enlace del portal, se pinte como botón principal o como tarjeta. */
+type Item = {
+  track: TrackTarget
+  href: string
+  title: string
+  subtitle: ReactNode
+  icon: ReactNode
+  /** Clases propias del cuadro del icono (logos de marca). Sin ellas, el del contenedor. */
+  tile?: string
+  /** Distintivo pequeño en la esquina del icono (la G de Google). */
+  badge?: ReactNode
+  photos: string[]
+  /** Fotos verticales (Instagram) o cuadradas (productos). */
+  portrait?: boolean
 }
 
-/** Los enlaces con fotos salen como tarjeta grande; el resto, como baldosa del bento grid. */
-function buildLinks(profile: Profile): { features: Feature[]; tiles: Tile[] } {
-  const features: Feature[] = []
-  const tiles: Tile[] = []
-  const website = safeUrl(profile.website_url)
+type Social = { track: TrackTarget; href: string; label: string; icon: ReactNode }
+
+/* ------------------------------------------------------------------ */
+/*  Datos → enlaces                                                    */
+/* ------------------------------------------------------------------ */
+
+function MiniStars() {
+  return (
+    <span className="inline-flex gap-px text-accent" aria-hidden>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <Star key={i} className="star size-3" fill="currentColor" strokeWidth={0} style={{ animationDelay: `${300 + i * 80}ms` }} />
+      ))}
+    </span>
+  )
+}
+
+function bookingItem(profile: Profile): Item | null {
+  const href = safeUrl(profile.booking_url)
+  if (!href) return null
+  const booksy = hostFromUrl(href).endsWith('booksy.com')
+  return {
+    track: 'booksy',
+    href,
+    title: profile.booking_label || 'Reservar cita',
+    subtitle: booksy ? 'Booksy · Elige día y hora' : 'Elige día y hora',
+    icon: booksy ? (
+      <img src="/brands/booksy.png" alt="" width={44} height={44} className="size-full" />
+    ) : (
+      <CalendarDays className="size-5" strokeWidth={1.8} />
+    ),
+    tile: booksy ? 'overflow-hidden' : undefined,
+    photos: photoList(profile.booking_photos),
+  }
+}
+
+function reviewItem(profile: Profile): Item | null {
+  const href = safeUrl(profile.google_review_url)
+  if (!href) return null
+  return {
+    track: 'google_review',
+    href,
+    title: 'Reseñas de Google',
+    subtitle: (
+      <span className="inline-flex items-center gap-1.5">
+        <MiniStars /> Valóranos en 10 s
+      </span>
+    ),
+    icon: <Star className="size-5" fill="currentColor" strokeWidth={0} />,
+    tile: 'bg-accent/12 text-accent ring-1 ring-inset ring-accent/25',
+    badge: <GoogleIcon className="size-2.5" />,
+    photos: [],
+  }
+}
+
+function websiteItem(profile: Profile): Item | null {
+  const href = safeUrl(profile.website_url)
+  if (!href) return null
+  const logo = safeImage(profile.website_logo_url)
+  const Icon = /tienda|shop|store/i.test(profile.website_label ?? '') ? ShoppingBag : Globe
+  return {
+    track: 'website',
+    href,
+    title: profile.website_label || 'Página web',
+    subtitle: hostFromUrl(href),
+    icon: logo ? (
+      <img src={logo} alt="" width={44} height={44} className="size-full object-cover" />
+    ) : (
+      <Icon className="size-5" strokeWidth={1.8} />
+    ),
+    tile: logo ? 'overflow-hidden bg-white' : undefined,
+    photos: photoList(profile.website_photos),
+  }
+}
+
+function instagramItem(profile: Profile): Item | null {
+  const href = safeUrl(profile.instagram_url)
+  if (!href) return null
+  return {
+    track: 'instagram',
+    href,
+    title: handleFromUrl(href) ?? 'Instagram',
+    subtitle: 'Instagram · Nuestros trabajos',
+    icon: <InstagramIcon className="size-5" strokeWidth={2} />,
+    tile: 'ig-gradient text-white',
+    photos: photoList(profile.instagram_photos),
+    portrait: true,
+  }
+}
+
+function tiktokItem(profile: Profile): Item | null {
+  const href = safeUrl(profile.tiktok_url)
+  if (!href) return null
+  return {
+    track: 'tiktok',
+    href,
+    title: handleFromUrl(href) ?? 'TikTok',
+    subtitle: 'TikTok',
+    icon: <TikTokIcon className="size-[18px]" />,
+    tile: 'bg-zinc-950 text-white ring-1 ring-inset ring-white/10',
+    photos: [],
+  }
+}
+
+function socialLinks(profile: Profile): Social[] {
+  const socials: Social[] = []
   const instagram = safeUrl(profile.instagram_url)
   const tiktok = safeUrl(profile.tiktok_url)
   const whatsapp = whatsappUrl(profile.whatsapp_phone)
-  const instagramPhotos = photoList(profile.instagram_photos)
-  const websitePhotos = photoList(profile.website_photos)
-
-  if (instagram && instagramPhotos.length > 0) {
-    features.push({
-      track: 'instagram',
-      href: instagram,
-      label: handleFromUrl(instagram) ?? 'Instagram',
-      detail: 'Instagram · Nuestros trabajos',
-      icon: <InstagramIcon className="size-[18px]" strokeWidth={2} />,
-      iconClass: 'ig-gradient text-white',
-      cta: 'Seguir',
-      photos: instagramPhotos,
-      portrait: true,
-    })
-  }
-  if (website && websitePhotos.length > 0) {
-    features.push({
-      track: 'website',
-      href: website,
-      label: profile.website_label || 'Página web',
-      detail: hostFromUrl(website),
-      icon: websiteIcon(profile),
-      iconClass: safeImage(profile.website_logo_url)
-        ? 'overflow-hidden bg-white'
-        : 'bg-accent/10 text-accent ring-1 ring-accent/25 ring-inset',
-      cta: 'Visitar',
-      photos: websitePhotos,
-      portrait: false,
-    })
-  }
-
-  if (website && websitePhotos.length === 0) {
-    tiles.push({ track: 'website', href: website, label: profile.website_label || 'Página web', detail: hostFromUrl(website), icon: websiteIcon(profile) })
-  }
-  if (instagram && instagramPhotos.length === 0) {
-    tiles.push({ track: 'instagram', href: instagram, label: 'Instagram', detail: handleFromUrl(instagram) ?? 'Síguenos', icon: <InstagramIcon className="size-[18px]" /> })
-  }
-  if (tiktok) {
-    tiles.push({ track: 'tiktok', href: tiktok, label: 'TikTok', detail: handleFromUrl(tiktok) ?? 'Síguenos', icon: <TikTokIcon className="size-4" /> })
-  }
-  if (whatsapp) {
-    tiles.push({ track: 'whatsapp', href: whatsapp, label: 'WhatsApp', detail: 'Escríbenos', icon: <WhatsAppIcon className="size-[17px]" /> })
-  }
-  return { features, tiles }
+  const maps = mapsUrl(safeUrl(profile.google_review_url), profile.business_name)
+  if (instagram) socials.push({ track: 'instagram', href: instagram, label: 'Instagram', icon: <InstagramIcon className="size-[18px]" /> })
+  if (tiktok) socials.push({ track: 'tiktok', href: tiktok, label: 'TikTok', icon: <TikTokIcon className="size-4" /> })
+  if (whatsapp) socials.push({ track: 'whatsapp', href: whatsapp, label: 'WhatsApp', icon: <WhatsAppIcon className="size-[17px]" /> })
+  if (maps) socials.push({ track: 'maps', href: maps, label: 'Cómo llegar', icon: <MapPin className="size-[18px]" strokeWidth={1.8} /> })
+  return socials
 }
 
+/* ------------------------------------------------------------------ */
+/*  Piezas                                                             */
+/* ------------------------------------------------------------------ */
+
+const rise = (i: number): CSSProperties => ({ animationDelay: `${80 + i * 70}ms` })
+
+const GLASS =
+  'border border-white/10 bg-white/[0.04] backdrop-blur-md transition duration-300 ease-out hover:border-white/20 hover:bg-white/[0.07]'
+
+function IconTile({ item, solid }: { item: Item; solid?: boolean }) {
+  const fallback = solid ? 'bg-zinc-950 text-zinc-50' : 'bg-white/[0.06] text-zinc-100 ring-1 ring-inset ring-white/10'
+  return (
+    <span className={`relative grid size-11 shrink-0 place-items-center rounded-xl ${item.tile ?? fallback}`}>
+      {item.icon}
+      {item.badge && (
+        <span
+          className={`absolute -right-1 -bottom-1 grid size-[18px] place-items-center rounded-full bg-white ring-2 ${
+            solid ? 'ring-zinc-50' : 'ring-charcoal'
+          }`}
+        >
+          {item.badge}
+        </span>
+      )}
+    </span>
+  )
+}
+
+/** Miniaturas superpuestas (tipo avatares) para el botón principal. */
+function PhotoStack({ photos }: { photos: string[] }) {
+  return (
+    <span className="flex shrink-0 -space-x-2.5" aria-hidden>
+      {photos.map((src) => (
+        <img key={src} src={src} alt="" width={64} height={64} decoding="async" className="size-8 rounded-full object-cover ring-2 ring-zinc-50" />
+      ))}
+    </span>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Portal                                                             */
+/* ------------------------------------------------------------------ */
+
 export function Portal({ profile, brand, trackingDisabled }: Props) {
-  const reviewUrl = safeUrl(profile.google_review_url)
-  const bookingUrl = safeUrl(profile.booking_url)
-  const bookingPhotos = photoList(profile.booking_photos)
-  const { features, tiles } = buildLinks(profile)
-  const wordmark = safeImage(profile.wordmark_url)
   const link = (track: TrackTarget) => ({ profileId: profile.id, track, trackingDisabled })
+  const wordmark = safeImage(profile.wordmark_url)
+
+  // Botón estrella: el que elija el negocio; si falta ese enlace, el otro.
+  const booking = bookingItem(profile)
+  const review = reviewItem(profile)
+  const reviewFirst = profile.primary_action === 'review' ? review !== null : booking === null
+  const primary = reviewFirst ? review : booking
+  const cards = [websiteItem(profile), reviewFirst ? booking : review, instagramItem(profile), tiktokItem(profile)].filter(
+    (item): item is Item => item !== null,
+  )
+  const socials = socialLinks(profile)
 
   return (
     <main
-      className="relative isolate mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-5 pt-[max(2.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] short:pt-[max(1.25rem,env(safe-area-inset-top))]"
+      className="relative isolate mx-auto flex min-h-dvh w-full max-w-[440px] flex-col px-5 pt-[max(2.75rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] short:pt-[max(1.5rem,env(safe-area-inset-top))]"
       style={{ '--accent': safeAccent(profile.theme_accent) } as CSSProperties}
     >
       <div aria-hidden className="portal-backdrop pointer-events-none fixed inset-0 -z-10" />
+      <div aria-hidden className="grain pointer-events-none fixed inset-0 -z-10" />
 
-      {/* 1 · Header del local */}
+      {/* 1 · Cabecera */}
       <header className="flex flex-col items-center text-center">
         {wordmark ? (
-          // Logotipo horizontal: sustituye al logo redondo y al nombre escrito
-          <h1 className="pt-3 short:pt-1">
+          <h1>
             <img
               src={wordmark}
               alt={profile.business_name}
               width={556}
               height={193}
               fetchPriority="high"
-              className="wordmark-glow h-auto w-[236px] short:w-[196px]"
+              className="wordmark-glow h-auto w-[216px] short:w-[184px]"
             />
           </h1>
         ) : (
           <>
-            <div className="relative size-[84px] short:size-16">
-              <div className="logo-ring logo-spin absolute -inset-[1.5px] rounded-full opacity-90" />
-              <div className="relative grid size-full place-items-center overflow-hidden rounded-full bg-zinc-950 shadow-[inset_0_0_0_1px_rgb(0_0_0)]">
+            <div className="relative size-[88px] short:size-[72px]">
+              <div className="logo-ring logo-spin absolute -inset-[1.5px] rounded-full opacity-80" />
+              <div className="relative grid size-full place-items-center overflow-hidden rounded-full bg-zinc-950">
                 {profile.logo_url ? (
                   // <img> y no next/image: logos de cualquier dominio, sin pasar por el optimizador
                   <img
                     src={profile.logo_url}
                     alt={`Logo de ${profile.business_name}`}
-                    width={84}
-                    height={84}
+                    width={88}
+                    height={88}
                     fetchPriority="high"
                     className="size-full object-cover"
                   />
                 ) : (
-                  <span className="font-display text-[2.4rem] font-semibold leading-none text-accent short:text-[1.9rem]">
-                    {profile.business_name.trim().charAt(0).toUpperCase()}
-                  </span>
+                  <span className="text-[2rem] font-bold text-accent">{profile.business_name.trim().charAt(0).toUpperCase()}</span>
                 )}
               </div>
             </div>
-
-            <h1 className="mt-4 font-display text-[2rem] font-semibold short:mt-3 short:text-[1.7rem] leading-[1.05] tracking-[-0.01em] text-zinc-50 text-balance">
-              {profile.business_name}
-            </h1>
+            <h1 className="mt-4 text-[26px] leading-tight font-bold tracking-tight text-balance text-zinc-50">{profile.business_name}</h1>
           </>
         )}
-        {profile.subtitle && (
-          <p
-            className={
-              wordmark
-                ? 'mt-4 text-[11px] font-medium tracking-[0.28em] text-zinc-400 uppercase short:mt-3'
-                : 'mt-1.5 text-[13px] text-zinc-400'
-            }
-          >
-            {profile.subtitle}
-          </p>
+
+        {profile.bio && (
+          <p className="mt-4 max-w-[32ch] text-[14.5px] leading-relaxed text-balance text-zinc-400 short:mt-3">{profile.bio}</p>
         )}
 
-        <p className="mt-3 inline-flex items-center gap-1.5 rounded-full short:mt-2.5 border border-white/[0.08] bg-white/[0.04] py-1 pr-2.5 pl-2 text-[11px] font-medium tracking-wide text-zinc-300">
-          <span className="relative flex size-1.5">
-            <span className="absolute inline-flex size-full rounded-full bg-emerald-400 opacity-60 motion-safe:animate-ping" />
-            <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
+        <p className="mt-3 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[12px] font-medium text-zinc-500">
+          {profile.subtitle && <span>{profile.subtitle}</span>}
+          {profile.subtitle && <span aria-hidden className="size-0.5 rounded-full bg-zinc-600" />}
+          <span className="inline-flex items-center gap-1 text-zinc-400">
+            <BadgeCheck className="size-3.5 text-accent" strokeWidth={2} />
+            Verificado
           </span>
-          Perfil verificado
-          <BadgeCheck className="size-3.5 text-accent" strokeWidth={2} />
         </p>
       </header>
 
-      <div className="mt-7 flex flex-col gap-3 short:mt-5 short:gap-2.5">
-        {/* 2 · CTA primario: reseña en Google */}
-        {reviewUrl && (
-          <TrackedLink
-            href={reviewUrl}
-            {...link('google_review')}
-            className="review-border group relative block rounded-[28px] p-px transition-transform duration-150 active:scale-[0.985]"
-          >
-            <div className="relative overflow-hidden rounded-[27px] bg-zinc-900/85 px-5 pt-4 pb-5 backdrop-blur-md short:pt-3.5 short:pb-4">
-              <span aria-hidden className="review-sheen sheen pointer-events-none absolute inset-0 -translate-x-full" />
-
-              <div className="relative flex items-center gap-3">
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white shadow-[0_4px_14px_-4px_rgb(0_0_0/0.6)]">
-                  <GoogleIcon className="size-[22px]" />
-                </span>
-                <div className="min-w-0">
-                  <div className="flex gap-0.5 text-accent" aria-label="5 estrellas">
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <Star
-                        key={i}
-                        className="star size-[17px]"
-                        fill="currentColor"
-                        strokeWidth={0}
-                        style={{ animationDelay: `${120 + i * 90}ms, ${1200 + i * 140}ms` }}
-                      />
-                    ))}
-                  </div>
-                  <p className="mt-0.5 text-[11px] font-medium tracking-wide text-zinc-400">Reseñas de Google</p>
-                </div>
-              </div>
-
-              <p className="relative mt-4 font-display text-[1.6rem] font-semibold leading-[1.08] text-zinc-50 text-balance short:mt-3 short:text-[1.4rem]">
-                ¿Te ha gustado la experiencia?
-              </p>
-              <p className="relative mt-1 text-[15px] text-zinc-300">
-                Valóranos en <span className="font-semibold text-accent">10 segundos</span>.
-              </p>
-
-              <span className="relative mt-4 flex h-12 short:mt-3 short:h-11 items-center justify-center gap-1.5 rounded-2xl bg-accent text-[15px] font-semibold text-zinc-950 shadow-[0_10px_28px_-10px_var(--accent)]">
-                Dejar mi reseña
-                <ArrowUpRight className="size-[18px] transition-transform group-active:translate-x-0.5 group-active:-translate-y-0.5" strokeWidth={2.2} />
-              </span>
-            </div>
-          </TrackedLink>
-        )}
-
-        {/* 3 · CTA secundario de alta intención: reserva */}
-        {bookingUrl && (
-          <TrackedLink
-            href={bookingUrl}
-            {...link('booksy')}
-            className="group block overflow-hidden rounded-2xl border border-accent/30 bg-zinc-900/80 backdrop-blur-md transition-transform duration-150 active:scale-[0.985]"
-          >
-            {bookingPhotos.length > 0 && (
-              <span className={`relative grid gap-0.5 ${PHOTO_COLS[bookingPhotos.length]}`}>
-                {bookingPhotos.map((src) => (
-                  // <img> y no next/image: fotos ya optimizadas, sin pasar por el optimizador
-                  <img key={src} src={src} alt="" width={360} height={300} decoding="async" className="aspect-[4/3] w-full object-cover" />
-                ))}
-                <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-zinc-900/90 to-transparent" />
-                <span className="absolute top-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium tracking-wide text-zinc-100 backdrop-blur-sm">
-                  Reserva online · 24 h
-                </span>
-              </span>
-            )}
-            <span className="flex min-h-16 items-center gap-3.5 px-4 py-2.5 short:min-h-14">
-              {hostFromUrl(bookingUrl).endsWith('booksy.com') ? (
-                <img src="/brands/booksy.png" alt="Booksy" width={40} height={40} className="size-10 shrink-0 rounded-xl" />
-              ) : (
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent ring-1 ring-accent/25 ring-inset">
-                  <CalendarDays className="size-5" strokeWidth={1.8} />
-                </span>
-              )}
-              <span className="min-w-0 flex-1">
-                <span className="block text-[15px] leading-snug font-semibold text-balance text-zinc-50">
-                  {profile.booking_label || 'Reservar próxima cita'}
-                </span>
-                <span className="block text-[12px] text-zinc-500">Elige día y hora · sin llamadas</span>
-              </span>
-              <ChevronRight className="size-5 shrink-0 text-zinc-500 transition-transform group-active:translate-x-0.5" />
+      {/* 2 · Enlace estrella: sólido, máximo contraste */}
+      {primary && (
+        <TrackedLink
+          href={primary.href}
+          {...link(primary.track)}
+          style={rise(0)}
+          className="rise group mt-8 flex items-center gap-3.5 rounded-[22px] bg-zinc-50 p-3 pr-4 text-zinc-950 shadow-[0_14px_44px_-16px_rgb(255_255_255/0.5)] transition duration-300 ease-out hover:shadow-[0_18px_56px_-14px_rgb(255_255_255/0.65)] motion-safe:hover:scale-[1.02] active:scale-[0.98] short:mt-6"
+        >
+          <IconTile item={primary} solid />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[16px] leading-tight font-bold tracking-tight">{primary.title}</span>
+            <span className="mt-1 block text-[12.5px] text-zinc-500">{primary.subtitle}</span>
+          </span>
+          {primary.photos.length > 0 ? (
+            <PhotoStack photos={primary.photos} />
+          ) : (
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-zinc-950 text-zinc-50 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+              <ArrowUpRight className="size-4" strokeWidth={2.2} />
             </span>
-          </TrackedLink>
-        )}
-      </div>
-
-      {/* 4 · CTAs terciarios: bento grid */}
-      {(features.length > 0 || tiles.length > 0) && (
-        <section className="mt-7 short:mt-5" aria-labelledby="connect-title">
-          <h2 id="connect-title" className="mb-2.5 px-1 short:mb-2 text-[10.5px] font-medium tracking-[0.22em] text-zinc-500 uppercase">
-            Conecta con nosotros
-          </h2>
-          {features.length > 0 && (
-            <div className="flex flex-col gap-2.5">
-              {features.map((feature) => (
-                <TrackedLink
-                  key={feature.track}
-                  href={feature.href}
-                  {...link(feature.track)}
-                  className="group block rounded-2xl border border-zinc-800/80 bg-zinc-900/80 p-3 backdrop-blur-md transition-transform duration-150 active:scale-[0.985]"
-                >
-                  <span className="flex items-center gap-3">
-                    <span className={`grid size-9 shrink-0 place-items-center rounded-xl ${feature.iconClass}`}>{feature.icon}</span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-semibold text-zinc-100">{feature.label}</span>
-                      <span className="block truncate text-[11px] text-zinc-500">{feature.detail}</span>
-                    </span>
-                    <span className="shrink-0 rounded-full bg-zinc-50 px-3.5 py-1.5 text-[12px] font-semibold text-zinc-950">
-                      {feature.cta}
-                    </span>
-                  </span>
-                  <span className={`mt-3 grid gap-1.5 ${PHOTO_COLS[feature.photos.length]}`}>
-                    {feature.photos.map((src) => (
-                      <img
-                        key={src}
-                        src={src}
-                        alt=""
-                        width={360}
-                        height={feature.portrait ? 480 : 360}
-                        loading="lazy"
-                        decoding="async"
-                        className={`w-full rounded-lg object-cover ${feature.portrait ? 'aspect-[3/4]' : 'aspect-square'}`}
-                      />
-                    ))}
-                  </span>
-                </TrackedLink>
-              ))}
-            </div>
           )}
-          {tiles.length > 0 && (
-            <div className={`grid grid-cols-2 gap-2.5 ${features.length > 0 ? 'mt-2.5' : ''}`}>
-              {tiles.map((tile, i) => (
-                <TrackedLink
-                  key={tile.track}
-                  href={tile.href}
-                  {...link(tile.track)}
-                  className={`flex h-[60px] min-w-0 short:h-14 items-center gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/80 px-3.5 backdrop-blur-md transition-transform duration-150 active:scale-[0.97] ${
-                    tiles.length % 2 === 1 && i === tiles.length - 1 ? 'col-span-2' : ''
-                  }`}
-                >
-                  <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-zinc-800/80 text-zinc-100 ring-1 ring-white/[0.06] ring-inset">
-                    {tile.icon}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[13px] font-semibold text-zinc-100">{tile.label}</span>
-                    <span className="block truncate text-[11px] text-zinc-500">{tile.detail}</span>
-                  </span>
-                </TrackedLink>
-              ))}
-            </div>
-          )}
-        </section>
+        </TrackedLink>
       )}
 
-      {/* 5 · Footer B2B */}
-      <footer className="mt-auto pt-9 text-center short:pt-6">
+      {/* 3 · Enlaces secundarios: tarjetas de cristal */}
+      {cards.length > 0 && (
+        <div className="mt-3.5 flex flex-col gap-3">
+          {cards.map((item, i) => (
+            <TrackedLink
+              key={item.track}
+              href={item.href}
+              {...link(item.track)}
+              style={rise(i + 1)}
+              className={`rise group relative block overflow-hidden rounded-[20px] p-3 ${GLASS} motion-safe:hover:scale-[1.02] active:scale-[0.98]`}
+            >
+              {/* Filo de luz superior del cristal */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-x-8 top-0 h-px bg-linear-to-r from-transparent via-white/30 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+              />
+              <span className="flex items-center gap-3.5">
+                <IconTile item={item} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[15px] leading-tight font-semibold tracking-tight text-zinc-50">{item.title}</span>
+                  <span className="mt-1 block truncate text-[12.5px] text-zinc-400">{item.subtitle}</span>
+                </span>
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/[0.06] text-zinc-400 transition duration-300 group-hover:bg-zinc-50 group-hover:text-zinc-950">
+                  <ArrowUpRight className="size-4" strokeWidth={2} />
+                </span>
+              </span>
+              {item.photos.length > 0 && (
+                <span className="mt-3 grid grid-cols-3 gap-2">
+                  {item.photos.map((src) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt=""
+                      width={360}
+                      height={item.portrait ? 450 : 360}
+                      loading="lazy"
+                      decoding="async"
+                      className={`w-full rounded-xl object-cover transition duration-500 group-hover:brightness-110 ${
+                        item.portrait ? 'aspect-[4/5] object-top' : 'aspect-square'
+                      }`}
+                    />
+                  ))}
+                </span>
+              )}
+            </TrackedLink>
+          ))}
+        </div>
+      )}
+
+      {/* 4 · Fila de iconos sociales */}
+      <nav aria-label="Redes y contacto" style={rise(cards.length + 1)} className="rise mt-8 flex items-center justify-center gap-3">
+        {socials.map((social) => (
+          <TrackedLink
+            key={social.track}
+            href={social.href}
+            {...link(social.track)}
+            aria-label={social.label}
+            title={social.label}
+            className={`grid size-11 place-items-center rounded-full text-zinc-400 ${GLASS} hover:text-zinc-50 motion-safe:hover:scale-110 active:scale-95`}
+          >
+            {social.icon}
+          </TrackedLink>
+        ))}
+        <ShareButton
+          title={profile.business_name}
+          className={`grid size-11 cursor-pointer place-items-center rounded-full text-zinc-400 ${GLASS} hover:text-zinc-50 motion-safe:hover:scale-110 active:scale-95`}
+        />
+      </nav>
+
+      {/* 5 · Pie B2B */}
+      <footer className="mt-auto pt-10 text-center short:pt-7">
         <TrackedLink
           href={brandUrl(brand.url, profile.slug)}
           {...link('brand')}
           className="inline-flex items-center gap-1.5 text-[11px] tracking-wide text-zinc-600 transition-colors hover:text-zinc-400"
         >
           <Nfc className="size-3.5" strokeWidth={1.8} />
-          Soporte artesanal NFC por <span className="font-medium text-zinc-400">{brand.name}</span>
+          Soporte artesanal NFC por <span className="font-semibold text-zinc-400">{brand.name}</span>
         </TrackedLink>
       </footer>
     </main>
