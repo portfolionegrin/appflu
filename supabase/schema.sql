@@ -14,12 +14,10 @@ create table if not exists public.profiles (
   slug              text not null,
   business_name     text not null,
   subtitle          text,
-  bio               text,
   logo_url          text,
   wordmark_url      text,
   theme_accent      text,
   mode              text not null default 'portal',
-  primary_action    text not null default 'booking',
   direct_url        text,
   google_review_url text,
   booking_url       text,
@@ -40,7 +38,6 @@ create table if not exists public.profiles (
   constraint profiles_slug_key        unique (slug),
   constraint profiles_slug_format     check (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and char_length(slug) <= 64),
   constraint profiles_mode_check      check (mode in ('portal', 'direct')),
-  constraint profiles_primary_action_check check (primary_action in ('booking', 'review')),
   constraint profiles_accent_format   check (theme_accent is null or theme_accent ~* '^#([0-9a-f]{3}|[0-9a-f]{6})$'),
   constraint profiles_direct_has_url  check (mode <> 'direct' or coalesce(direct_url, google_review_url) is not null)
 );
@@ -52,11 +49,6 @@ alter table public.profiles add column if not exists website_label    text;
 alter table public.profiles add column if not exists website_photos   text[];
 alter table public.profiles add column if not exists website_logo_url text;
 alter table public.profiles add column if not exists wordmark_url     text;
-alter table public.profiles add column if not exists bio              text;
-alter table public.profiles add column if not exists primary_action   text not null default 'booking';
-alter table public.profiles drop constraint if exists profiles_primary_action_check;
-alter table public.profiles add constraint profiles_primary_action_check
-  check (primary_action in ('booking', 'review'));
 
 comment on column public.profiles.mode is
   '''portal'' muestra la interfaz; ''direct'' hace un 307 a direct_url (o a google_review_url si está vacío).';
@@ -66,10 +58,6 @@ comment on column public.profiles.instagram_photos is
   'Hasta 3 URLs de fotos para la tarjeta de Instagram (https://... o /clients/<slug>/...).';
 comment on column public.profiles.website_photos is
   'Hasta 3 URLs de fotos para la tarjeta de la web (p. ej. prendas de una tienda).';
-comment on column public.profiles.primary_action is
-  'Botón principal sólido: ''booking'' (reserva) o ''review'' (reseña de Google).';
-comment on column public.profiles.bio is
-  'Minibio de una línea bajo el nombre o el logotipo.';
 comment on column public.profiles.wordmark_url is
   'Logotipo horizontal en claro (PNG transparente). Sustituye al logo redondo y al nombre en la cabecera.';
 comment on column public.profiles.website_logo_url is
@@ -116,7 +104,7 @@ create table if not exists public.analytics_events (
   constraint analytics_event_type_check check (event_type in ('scan', 'click')),
   constraint analytics_target_check check (
     target is null or target in (
-      'google_review', 'booksy', 'website', 'instagram', 'tiktok', 'whatsapp', 'maps', 'brand'
+      'google_review', 'booksy', 'website', 'instagram', 'tiktok', 'whatsapp', 'brand'
     )
   ),
   -- Un clic siempre lleva target; un escaneo nunca.
@@ -125,14 +113,6 @@ create table if not exists public.analytics_events (
     device_type is null or device_type in ('mobile', 'tablet', 'desktop', 'unknown')
   ),
   constraint analytics_ua_length check (user_agent is null or char_length(user_agent) <= 64)
-);
-
--- Si la tabla ya existía, actualiza la lista de destinos permitidos.
-alter table public.analytics_events drop constraint if exists analytics_target_check;
-alter table public.analytics_events add constraint analytics_target_check check (
-  target is null or target in (
-    'google_review', 'booksy', 'website', 'instagram', 'tiktok', 'whatsapp', 'maps', 'brand'
-  )
 );
 
 create index if not exists analytics_profile_created_idx
@@ -204,24 +184,22 @@ revoke all on public.analytics_daily from anon, authenticated;
 
 -- Negocio ficticio de demostración
 insert into public.profiles (
-  id, slug, business_name, subtitle, bio, logo_url, wordmark_url, theme_accent, mode, primary_action, direct_url,
+  id, slug, business_name, subtitle, logo_url, wordmark_url, theme_accent, mode, direct_url,
   google_review_url, booking_url, booking_label, website_url, website_label, website_photos, website_logo_url,
   instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
 ) values (
   '8b1f6a52-3c4e-4f0a-9d7b-2a6c5e1f0a01',
   'atelier-corte-barba',
   'Atelier Corte & Barba',
-  'Madrid · Desde 2016',
-  'Barbería de autor. Cortes clásicos, barba y afeitado a navaja.',
+  'Barbería de autor · Desde 2016',
   null,
   null,
   '#D4AF37',
   'portal',
-  'booking',
   null,
   'https://search.google.com/local/writereview?placeid=ChIJ_ATELIER_DEMO_PLACE_ID',
   'https://booksy.com/es-es/000000_atelier-corte-barba_barberia_00000_madrid',
-  'Reservar cita',
+  'Reservar próxima cita en Booksy',
   'https://ateliercortebarba.example',
   null,
   null,
@@ -236,12 +214,10 @@ insert into public.profiles (
 on conflict (slug) do update set
   business_name     = excluded.business_name,
   subtitle          = excluded.subtitle,
-  bio               = excluded.bio,
   logo_url          = excluded.logo_url,
   wordmark_url      = excluded.wordmark_url,
   theme_accent      = excluded.theme_accent,
   mode              = excluded.mode,
-  primary_action    = excluded.primary_action,
   direct_url        = excluded.direct_url,
   google_review_url = excluded.google_review_url,
   booking_url       = excluded.booking_url,
@@ -259,7 +235,7 @@ on conflict (slug) do update set
 
 -- Cliente real: NOVA Studio (Vecindario, Gran Canaria)
 insert into public.profiles (
-  id, slug, business_name, subtitle, bio, logo_url, wordmark_url, theme_accent, mode, primary_action, direct_url,
+  id, slug, business_name, subtitle, logo_url, wordmark_url, theme_accent, mode, direct_url,
   google_review_url, booking_url, booking_label, website_url, website_label, website_photos, website_logo_url,
   instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
 ) values (
@@ -267,16 +243,14 @@ insert into public.profiles (
   'nova-studio',
   'NOVA Studio',
   'Vecindario · Gran Canaria',
-  'Barbería y estilismo · Creating identities',
   '/logos/nova-studio.png',
   '/clients/nova-studio/wordmark.png',
   '#C5A059',
   'portal',
-  'booking',
   null,
   'https://search.google.com/local/writereview?placeid=ChIJHVeDXOOfQAwRMTEKo4xrOvM',
   'https://novastudiogc.booksy.com',
-  'Reservar cita',
+  'Reservar próxima cita en Booksy',
   'https://novasupply.es',
   'Tienda de ropa',
   array['/clients/nova-studio/shop-1.jpg', '/clients/nova-studio/shop-2.jpg', '/clients/nova-studio/shop-3.jpg'],
@@ -291,12 +265,10 @@ insert into public.profiles (
 on conflict (slug) do update set
   business_name     = excluded.business_name,
   subtitle          = excluded.subtitle,
-  bio               = excluded.bio,
   logo_url          = excluded.logo_url,
   wordmark_url      = excluded.wordmark_url,
   theme_accent      = excluded.theme_accent,
   mode              = excluded.mode,
-  primary_action    = excluded.primary_action,
   direct_url        = excluded.direct_url,
   google_review_url = excluded.google_review_url,
   booking_url       = excluded.booking_url,

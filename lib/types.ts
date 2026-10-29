@@ -1,21 +1,15 @@
 export type ProfileMode = 'portal' | 'direct'
 
-/** Qué acción se muestra como botón principal sólido. */
-export type PrimaryAction = 'booking' | 'review'
-
 export type Profile = {
   id: string
   slug: string
   business_name: string
   subtitle: string | null
-  /** Minibio bajo el nombre o el logotipo. */
-  bio: string | null
   logo_url: string | null
   /** Logotipo horizontal en claro. Si existe, sustituye al logo redondo y al nombre. */
   wordmark_url: string | null
   theme_accent: string | null
   mode: ProfileMode
-  primary_action: PrimaryAction
   direct_url: string | null
   google_review_url: string | null
   booking_url: string | null
@@ -44,7 +38,6 @@ export const TRACK_TARGETS = [
   'instagram',
   'tiktok',
   'whatsapp',
-  'maps',
   'brand',
 ] as const
 

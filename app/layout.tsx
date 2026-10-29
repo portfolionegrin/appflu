@@ -1,9 +1,14 @@
 import type { Metadata, Viewport } from 'next'
-import { Plus_Jakarta_Sans } from 'next/font/google'
+import { Cormorant_Garamond, Inter } from 'next/font/google'
 import './globals.css'
 
-// Fuente variable: un solo archivo cubre de 400 a 800.
-const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta', display: 'swap' })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['500', '600'],
+  variable: '--font-cormorant',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://appflu.es'),
@@ -15,14 +20,14 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#111111',
+  themeColor: '#0A0A0B',
   colorScheme: 'dark',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={jakarta.variable}>
-      <body className="min-h-dvh bg-charcoal font-sans">{children}</body>
+    <html lang="es" className={`${inter.variable} ${cormorant.variable}`}>
+      <body className="min-h-dvh bg-obsidian font-sans">{children}</body>
     </html>
   )
 }

@@ -8,7 +8,7 @@ import type { Profile } from './types'
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const COLUMNS =
-  'id, slug, business_name, subtitle, bio, logo_url, wordmark_url, theme_accent, mode, primary_action, direct_url, google_review_url, booking_url, booking_label, website_url, website_label, website_photos, website_logo_url, instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active'
+  'id, slug, business_name, subtitle, logo_url, wordmark_url, theme_accent, mode, direct_url, google_review_url, booking_url, booking_label, website_url, website_label, website_photos, website_logo_url, instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active'
 
 // Caché compartida entre peticiones: un escaneo no espera a la base de datos
 // salvo la primera vez cada 60 s. Los cambios en Supabase tardan ≤ 60 s en verse.
