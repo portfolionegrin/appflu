@@ -16,6 +16,8 @@ create table if not exists public.profiles (
   subtitle          text,
   logo_url          text,
   wordmark_url      text,
+  hero_url          text,
+  page_color        text,
   theme_accent      text,
   mode              text not null default 'portal',
   direct_url        text,
@@ -39,6 +41,7 @@ create table if not exists public.profiles (
   constraint profiles_slug_format     check (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and char_length(slug) <= 64),
   constraint profiles_mode_check      check (mode in ('portal', 'direct')),
   constraint profiles_accent_format   check (theme_accent is null or theme_accent ~* '^#([0-9a-f]{3}|[0-9a-f]{6})$'),
+  constraint profiles_page_color_format check (page_color is null or page_color ~* '^#([0-9a-f]{3}|[0-9a-f]{6})$'),
   constraint profiles_direct_has_url  check (mode <> 'direct' or coalesce(direct_url, google_review_url) is not null)
 );
 
@@ -49,6 +52,11 @@ alter table public.profiles add column if not exists website_label    text;
 alter table public.profiles add column if not exists website_photos   text[];
 alter table public.profiles add column if not exists website_logo_url text;
 alter table public.profiles add column if not exists wordmark_url     text;
+alter table public.profiles add column if not exists hero_url         text;
+alter table public.profiles add column if not exists page_color       text;
+alter table public.profiles drop constraint if exists profiles_page_color_format;
+alter table public.profiles add constraint profiles_page_color_format
+  check (page_color is null or page_color ~* '^#([0-9a-f]{3}|[0-9a-f]{6})$');
 
 comment on column public.profiles.mode is
   '''portal'' muestra la interfaz; ''direct'' hace un 307 a direct_url (o a google_review_url si está vacío).';
@@ -58,6 +66,10 @@ comment on column public.profiles.instagram_photos is
   'Hasta 3 URLs de fotos para la tarjeta de Instagram (https://... o /clients/<slug>/...).';
 comment on column public.profiles.website_photos is
   'Hasta 3 URLs de fotos para la tarjeta de la web (p. ej. prendas de una tienda).';
+comment on column public.profiles.hero_url is
+  'Foto grande de cabecera (vertical, a sangre). Se funde por abajo con page_color.';
+comment on column public.profiles.page_color is
+  'Color de fondo del portal (#rrggbb). Con foto de cabecera, el tono de su parte baja.';
 comment on column public.profiles.wordmark_url is
   'Logotipo horizontal en claro (PNG transparente). Sustituye al logo redondo y al nombre en la cabecera.';
 comment on column public.profiles.website_logo_url is
@@ -104,7 +116,7 @@ create table if not exists public.analytics_events (
   constraint analytics_event_type_check check (event_type in ('scan', 'click')),
   constraint analytics_target_check check (
     target is null or target in (
-      'google_review', 'booksy', 'website', 'instagram', 'tiktok', 'whatsapp', 'brand'
+      'google_review', 'booksy', 'website', 'instagram', 'tiktok', 'whatsapp', 'maps', 'brand'
     )
   ),
   -- Un clic siempre lleva target; un escaneo nunca.
@@ -113,6 +125,14 @@ create table if not exists public.analytics_events (
     device_type is null or device_type in ('mobile', 'tablet', 'desktop', 'unknown')
   ),
   constraint analytics_ua_length check (user_agent is null or char_length(user_agent) <= 64)
+);
+
+-- Si la tabla ya existía, actualiza la lista de destinos permitidos.
+alter table public.analytics_events drop constraint if exists analytics_target_check;
+alter table public.analytics_events add constraint analytics_target_check check (
+  target is null or target in (
+    'google_review', 'booksy', 'website', 'instagram', 'tiktok', 'whatsapp', 'maps', 'brand'
+  )
 );
 
 create index if not exists analytics_profile_created_idx
@@ -184,7 +204,7 @@ revoke all on public.analytics_daily from anon, authenticated;
 
 -- Negocio ficticio de demostración
 insert into public.profiles (
-  id, slug, business_name, subtitle, logo_url, wordmark_url, theme_accent, mode, direct_url,
+  id, slug, business_name, subtitle, logo_url, wordmark_url, hero_url, page_color, theme_accent, mode, direct_url,
   google_review_url, booking_url, booking_label, website_url, website_label, website_photos, website_logo_url,
   instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
 ) values (
@@ -194,12 +214,14 @@ insert into public.profiles (
   'Barbería de autor · Desde 2016',
   null,
   null,
+  null,
+  null,
   '#D4AF37',
   'portal',
   null,
   'https://search.google.com/local/writereview?placeid=ChIJ_ATELIER_DEMO_PLACE_ID',
   'https://booksy.com/es-es/000000_atelier-corte-barba_barberia_00000_madrid',
-  'Reservar próxima cita en Booksy',
+  'Reserva tu cita en Booksy',
   'https://ateliercortebarba.example',
   null,
   null,
@@ -216,6 +238,8 @@ on conflict (slug) do update set
   subtitle          = excluded.subtitle,
   logo_url          = excluded.logo_url,
   wordmark_url      = excluded.wordmark_url,
+  hero_url          = excluded.hero_url,
+  page_color        = excluded.page_color,
   theme_accent      = excluded.theme_accent,
   mode              = excluded.mode,
   direct_url        = excluded.direct_url,
@@ -235,7 +259,7 @@ on conflict (slug) do update set
 
 -- Cliente real: NOVA Studio (Vecindario, Gran Canaria)
 insert into public.profiles (
-  id, slug, business_name, subtitle, logo_url, wordmark_url, theme_accent, mode, direct_url,
+  id, slug, business_name, subtitle, logo_url, wordmark_url, hero_url, page_color, theme_accent, mode, direct_url,
   google_review_url, booking_url, booking_label, website_url, website_label, website_photos, website_logo_url,
   instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
 ) values (
@@ -245,12 +269,14 @@ insert into public.profiles (
   'Vecindario · Gran Canaria',
   '/logos/nova-studio.png',
   '/clients/nova-studio/wordmark.png',
+  '/clients/nova-studio/hero.jpg',
+  '#736c65',
   '#C5A059',
   'portal',
   null,
   'https://search.google.com/local/writereview?placeid=ChIJHVeDXOOfQAwRMTEKo4xrOvM',
   'https://novastudiogc.booksy.com',
-  'Reservar próxima cita en Booksy',
+  'Reserva tu cita en Booksy',
   'https://novasupply.es',
   'Tienda de ropa',
   array['/clients/nova-studio/shop-1.jpg', '/clients/nova-studio/shop-2.jpg', '/clients/nova-studio/shop-3.jpg'],
@@ -267,6 +293,8 @@ on conflict (slug) do update set
   subtitle          = excluded.subtitle,
   logo_url          = excluded.logo_url,
   wordmark_url      = excluded.wordmark_url,
+  hero_url          = excluded.hero_url,
+  page_color        = excluded.page_color,
   theme_accent      = excluded.theme_accent,
   mode              = excluded.mode,
   direct_url        = excluded.direct_url,

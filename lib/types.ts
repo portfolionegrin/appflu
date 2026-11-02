@@ -8,6 +8,10 @@ export type Profile = {
   logo_url: string | null
   /** Logotipo horizontal en claro. Si existe, sustituye al logo redondo y al nombre. */
   wordmark_url: string | null
+  /** Foto grande de cabecera (vertical); se funde con page_color. */
+  hero_url: string | null
+  /** Color de fondo del portal (#rrggbb). Con foto, el de su parte baja. */
+  page_color: string | null
   theme_accent: string | null
   mode: ProfileMode
   direct_url: string | null
@@ -38,6 +42,7 @@ export const TRACK_TARGETS = [
   'instagram',
   'tiktok',
   'whatsapp',
+  'maps',
   'brand',
 ] as const
 

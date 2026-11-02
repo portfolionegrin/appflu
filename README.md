@@ -4,8 +4,9 @@ Plataforma multi-tenant que se abre al acercar el móvil a un soporte de madera 
 olivo y resina con chip NFC. Cada negocio tiene su portal en `appflu.es/p/<slug>`.
 
 - **Next.js 16 (App Router) + Tailwind CSS 4 + Supabase + lucide-react**
-- Modo `portal`: interfaz "Obsidian & Olive" con jerarquía de conversión
-  (Reseña Google → Reserva Booksy → Web/RRSS → pie B2B).
+- Modo `portal`: diseño tipo Linktree "hero": foto grande a sangre que se funde con
+  el color de fondo, logotipo, iconos sociales y botones de borde fino con
+  miniatura (Reseña Google → Reserva Booksy → Tienda/Web → Instagram) + pie B2B.
 - Modo `direct`: redirect **307** desde el servidor a Google Reviews, sin interfaz.
 - Analítica de escaneos y clics sin IP ni cookies (RGPD), registrada **después**
   de enviar la respuesta: ni el redirect ni los botones esperan a la base de datos.
@@ -20,7 +21,7 @@ en `public/` y se sirve igual en `appflu.es/`.
 ```
 app/
 ├── layout.tsx              Fuentes, viewport móvil, color de tema
-├── globals.css             Tailwind 4 + tokens "Obsidian & Olive" + animaciones
+├── globals.css             Tailwind 4 + color de fondo por negocio (--page)
 ├── not-found.tsx           Placa inactiva o slug inexistente
 ├── p/[slug]/page.tsx       Portal: carga el perfil, registra el escaneo, 307 si es "direct"
 ├── p/[slug]/error.tsx      Error de red con botón de reintento
@@ -29,6 +30,7 @@ app/
 components/portal/
 ├── Portal.tsx              Interfaz completa (Server Component)
 ├── TrackedLink.tsx         Enlace cliente con sendBeacon / fetch keepalive
+├── ShareButton.tsx         Botón de compartir (menú nativo o copiar enlace)
 └── BrandIcons.tsx          Google (color), Instagram, TikTok, WhatsApp
 lib/
 ├── profiles.ts             getProfile(): caché 60 s + fallback a demo
@@ -98,6 +100,18 @@ Para que la placa abra directamente Google Reviews sin interfaz:
 ```sql
 update profiles set mode = 'direct' where slug = 'barberia-imperial';
 ```
+
+Foto de cabecera y color de fondo (si no hay foto, sale el avatar redondo):
+
+```sql
+update profiles
+set hero_url = '/clients/barberia-imperial/hero.jpg', -- vertical, mínimo 800 px de ancho
+    page_color = '#2b2622'                           -- el tono de la parte baja de la foto
+where slug = 'barberia-imperial';
+```
+
+Elige un `page_color` lo bastante oscuro para que el texto blanco se lea
+(contraste mínimo 4,5:1).
 
 Los cambios tardan como máximo 60 s en verse (caché del perfil).
 

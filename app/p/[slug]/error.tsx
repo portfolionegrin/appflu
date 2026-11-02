@@ -5,7 +5,7 @@ import { RotateCw } from 'lucide-react'
 export default function PortalError({ reset }: { error: Error; reset: () => void }) {
   return (
     <main className="portal-backdrop flex min-h-dvh flex-col items-center justify-center px-6 text-center">
-      <h1 className="font-display text-3xl font-semibold text-zinc-50">Un momento…</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Un momento…</h1>
       <p className="mt-2 max-w-xs text-sm text-zinc-400">No hemos podido cargar el portal. Inténtalo de nuevo.</p>
       <button
         type="button"

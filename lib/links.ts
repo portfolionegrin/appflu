@@ -16,6 +16,12 @@ export function safeAccent(value: string | null | undefined): string {
   return value && HEX_RE.test(value) ? value : DEFAULT_ACCENT
 }
 
+export const DEFAULT_PAGE_COLOR = '#0a0a0b'
+
+export function safePageColor(value: string | null | undefined): string {
+  return value && HEX_RE.test(value) ? value : DEFAULT_PAGE_COLOR
+}
+
 export function whatsappUrl(phone: string | null | undefined): string | null {
   const digits = phone?.replace(/\D/g, '') ?? ''
   return digits.length >= 8 ? `https://wa.me/${digits}` : null
@@ -60,4 +66,19 @@ export function safeImage(src: string | null | undefined): string | null {
 /** Hasta 3 fotos válidas. */
 export function photoList(list: string[] | null | undefined): string[] {
   return (list ?? []).filter((src) => safeImage(src)).slice(0, 3)
+}
+
+/** "Cómo llegar" en Google Maps a partir del enlace de reseña (writereview?placeid=...). */
+export function mapsUrl(reviewUrl: string | null, businessName: string): string | null {
+  try {
+    const placeId = reviewUrl ? new URL(reviewUrl).searchParams.get('placeid') : null
+    if (!placeId) return null
+    const url = new URL('https://www.google.com/maps/search/')
+    url.searchParams.set('api', '1')
+    url.searchParams.set('query', businessName)
+    url.searchParams.set('query_place_id', placeId)
+    return url.toString()
+  } catch {
+    return null
+  }
 }

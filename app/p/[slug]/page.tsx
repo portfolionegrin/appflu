@@ -1,11 +1,11 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { after } from 'next/server'
 import { Portal } from '@/components/portal/Portal'
 import { logEvent } from '@/lib/analytics'
 import { BRAND } from '@/lib/brand'
-import { safeUrl } from '@/lib/links'
+import { safePageColor, safeUrl } from '@/lib/links'
 import { getProfile } from '@/lib/profiles'
 
 type Props = { params: Promise<{ slug: string }> }
@@ -18,6 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: profile.subtitle ?? `Valora y reserva en ${profile.business_name}.`,
     robots: { index: false, follow: false },
   }
+}
+
+export async function generateViewport({ params }: Props): Promise<Viewport> {
+  const profile = await getProfile((await params).slug)
+  return { themeColor: safePageColor(profile?.page_color) }
 }
 
 export default async function PortalPage({ params }: Props) {
