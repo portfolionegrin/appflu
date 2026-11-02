@@ -23,7 +23,7 @@ export type Profile = {
   website_label: string | null
   /** Hasta 3 fotos para la tarjeta de la web (p. ej. prendas de la tienda). */
   website_photos: string[] | null
-  /** Logo de la web o tienda para su icono (cuadrado). */
+  /** Logo de la web o tienda (PNG transparente); se muestra como silueta gris. */
   website_logo_url: string | null
   instagram_url: string | null
   tiktok_url: string | null

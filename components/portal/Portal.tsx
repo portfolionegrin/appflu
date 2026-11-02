@@ -32,16 +32,31 @@ type LinkButton = { track: TrackTarget; href: string; title: string; thumb: Reac
 type Social = { track: TrackTarget; href: string; label: string; icon: ReactNode }
 
 /* ------------------------------------------------------------------ */
-/*  Miniaturas: logo de marca > primera foto > icono                   */
+/*  Miniaturas monocromas: logo de marca > primera foto > icono        */
 /* ------------------------------------------------------------------ */
 
-function Photo({ src, white }: { src: string; white?: boolean }) {
+/** Cualquier logo con fondo transparente pasa a silueta gris (#d4d4d4, como text-zinc-300). */
+const MONO = '[filter:brightness(0)_invert(0.83)]'
+
+function Photo({ src }: { src: string }) {
   // <img> y no next/image: imágenes ya optimizadas, sin pasar por el optimizador
-  return <img src={src} alt="" width={96} height={96} decoding="async" className={`size-full object-cover ${white ? 'bg-white' : ''}`} />
+  return <img src={src} alt="" width={96} height={96} decoding="async" className="size-full object-cover" />
 }
 
-function IconThumb({ children, className = 'bg-white/15 text-white' }: { children: ReactNode; className?: string }) {
-  return <span className={`grid size-full place-items-center ${className}`}>{children}</span>
+/** Cuadrado translúcido con el logo o el icono en gris. */
+function IconThumb({ children }: { children: ReactNode }) {
+  return (
+    <span className="grid size-full place-items-center bg-white/10 text-zinc-300 ring-1 ring-white/15 ring-inset">{children}</span>
+  )
+}
+
+/** `size`: los logos anchos (la "b" de Booksy) necesitan algo más de caja para pesar lo mismo. */
+function LogoThumb({ src, size = 'size-7' }: { src: string; size?: string }) {
+  return (
+    <IconThumb>
+      <img src={src} alt="" width={64} height={64} decoding="async" className={`${size} object-contain ${MONO}`} />
+    </IconThumb>
+  )
 }
 
 function buildButtons(profile: Profile): LinkButton[] {
@@ -56,8 +71,8 @@ function buildButtons(profile: Profile): LinkButton[] {
       href: review,
       title: 'Valóranos en Google',
       thumb: (
-        <IconThumb className="bg-white">
-          <GoogleIcon className="size-[26px]" />
+        <IconThumb>
+          <GoogleIcon className={`size-[22px] ${MONO}`} />
         </IconThumb>
       ),
     })
@@ -69,7 +84,7 @@ function buildButtons(profile: Profile): LinkButton[] {
       href: booking,
       title: profile.booking_label || 'Reserva tu cita',
       thumb: hostFromUrl(booking).endsWith('booksy.com') ? (
-        <Photo src="/brands/booksy.png" />
+        <LogoThumb src="/brands/booksy-mark.png" size="size-8" />
       ) : photo ? (
         <Photo src={photo} />
       ) : (
@@ -88,7 +103,7 @@ function buildButtons(profile: Profile): LinkButton[] {
       href: website,
       title: profile.website_label || 'Página web',
       thumb: logo ? (
-        <Photo src={logo} white />
+        <LogoThumb src={logo} />
       ) : photo ? (
         <Photo src={photo} />
       ) : (

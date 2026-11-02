@@ -114,6 +114,9 @@ where slug = 'barberia-imperial';
 Elige un `page_color` lo bastante oscuro para que el texto blanco se lea
 (contraste mínimo 4,5:1). Mejor en WebP: pesa la mitad que un JPG.
 
+Los logos de los botones salen en gris, como siluetas: sube el de la web
+(`website_logo_url`) como PNG con fondo transparente.
+
 Para quitar el botón de la esquina y el pie "Soporte artesanal NFC por …" (por
 ejemplo, si el cliente no quiere tu marca en su página):
 
