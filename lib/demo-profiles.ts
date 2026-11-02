@@ -52,7 +52,7 @@ export const DEMO_PROFILES: Record<string, Profile> = {
       '/clients/nova-studio/shop-2.jpg',
       '/clients/nova-studio/shop-3.jpg',
     ],
-    website_logo_url: '/clients/nova-studio/supply-mark.png',
+    website_logo_url: '/clients/nova-studio/supply-logo.png',
     instagram_url: 'https://www.instagram.com/novastudio.gc/',
     tiktok_url: null,
     whatsapp_phone: null,

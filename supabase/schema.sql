@@ -77,7 +77,7 @@ comment on column public.profiles.page_color is
 comment on column public.profiles.wordmark_url is
   'Logotipo horizontal en claro (PNG transparente). Sustituye al logo redondo y al nombre en la cabecera.';
 comment on column public.profiles.website_logo_url is
-  'Logo de la web o tienda en PNG con fondo transparente; el portal lo muestra como silueta gris.';
+  'Logo cuadrado de la web o tienda; sustituye al icono genérico.';
 comment on column public.profiles.booking_photos is
   'Hasta 3 URLs de fotos para la tarjeta de reserva.';
 
@@ -286,7 +286,7 @@ insert into public.profiles (
   'https://novasupply.es',
   'Nova Supply',
   array['/clients/nova-studio/shop-1.jpg', '/clients/nova-studio/shop-2.jpg', '/clients/nova-studio/shop-3.jpg'],
-  '/clients/nova-studio/supply-mark.png',
+  '/clients/nova-studio/supply-logo.png',
   'https://www.instagram.com/novastudio.gc/',
   null,
   null,
