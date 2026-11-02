@@ -27,6 +27,7 @@ export const DEMO_PROFILES: Record<string, Profile> = {
     whatsapp_phone: '+34 600 000 000',
     instagram_photos: null,
     booking_photos: null,
+    show_branding: true,
     is_active: true,
   },
   'nova-studio': {
@@ -36,8 +37,8 @@ export const DEMO_PROFILES: Record<string, Profile> = {
     subtitle: 'Vecindario · Gran Canaria',
     logo_url: '/logos/nova-studio.png',
     wordmark_url: '/clients/nova-studio/wordmark.png',
-    hero_url: '/clients/nova-studio/hero.jpg',
-    page_color: '#736c65',
+    hero_url: '/clients/nova-studio/hero.webp',
+    page_color: '#394146',
     theme_accent: '#C5A059',
     mode: 'portal',
     direct_url: null,
@@ -45,7 +46,7 @@ export const DEMO_PROFILES: Record<string, Profile> = {
     booking_url: 'https://novastudiogc.booksy.com',
     booking_label: 'Reserva tu cita en Booksy',
     website_url: 'https://novasupply.es',
-    website_label: 'Tienda de ropa',
+    website_label: 'Nova Supply',
     website_photos: [
       '/clients/nova-studio/shop-1.jpg',
       '/clients/nova-studio/shop-2.jpg',
@@ -65,6 +66,7 @@ export const DEMO_PROFILES: Record<string, Profile> = {
       '/clients/nova-studio/booking-2.jpg',
       '/clients/nova-studio/booking-3.jpg',
     ],
+    show_branding: false,
     is_active: true,
   },
 }

@@ -5,8 +5,9 @@ olivo y resina con chip NFC. Cada negocio tiene su portal en `appflu.es/p/<slug>
 
 - **Next.js 16 (App Router) + Tailwind CSS 4 + Supabase + lucide-react**
 - Modo `portal`: diseño tipo Linktree "hero": foto grande a sangre que se funde con
-  el color de fondo, logotipo, iconos sociales y botones de borde fino con
-  miniatura (Reseña Google → Reserva Booksy → Tienda/Web → Instagram) + pie B2B.
+  el color de fondo, logotipo, iconos sociales (Instagram, TikTok, WhatsApp, Maps)
+  y botones de borde fino con miniatura (Reseña Google → Reserva Booksy → Web) +
+  pie B2B opcional.
 - Modo `direct`: redirect **307** desde el servidor a Google Reviews, sin interfaz.
 - Analítica de escaneos y clics sin IP ni cookies (RGPD), registrada **después**
   de enviar la respuesta: ni el redirect ni los botones esperan a la base de datos.
@@ -111,7 +112,14 @@ where slug = 'barberia-imperial';
 ```
 
 Elige un `page_color` lo bastante oscuro para que el texto blanco se lea
-(contraste mínimo 4,5:1).
+(contraste mínimo 4,5:1). Mejor en WebP: pesa la mitad que un JPG.
+
+Para quitar el botón de la esquina y el pie "Soporte artesanal NFC por …" (por
+ejemplo, si el cliente no quiere tu marca en su página):
+
+```sql
+update profiles set show_branding = false where slug = 'barberia-imperial';
+```
 
 Los cambios tardan como máximo 60 s en verse (caché del perfil).
 

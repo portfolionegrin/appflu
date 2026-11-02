@@ -33,6 +33,7 @@ create table if not exists public.profiles (
   whatsapp_phone    text,
   instagram_photos  text[],
   booking_photos    text[],
+  show_branding     boolean not null default true,
   is_active         boolean not null default true,
   created_at        timestamptz not null default now(),
   updated_at        timestamptz not null default now(),
@@ -54,6 +55,7 @@ alter table public.profiles add column if not exists website_logo_url text;
 alter table public.profiles add column if not exists wordmark_url     text;
 alter table public.profiles add column if not exists hero_url         text;
 alter table public.profiles add column if not exists page_color       text;
+alter table public.profiles add column if not exists show_branding    boolean not null default true;
 alter table public.profiles drop constraint if exists profiles_page_color_format;
 alter table public.profiles add constraint profiles_page_color_format
   check (page_color is null or page_color ~* '^#([0-9a-f]{3}|[0-9a-f]{6})$');
@@ -66,6 +68,8 @@ comment on column public.profiles.instagram_photos is
   'Hasta 3 URLs de fotos para la tarjeta de Instagram (https://... o /clients/<slug>/...).';
 comment on column public.profiles.website_photos is
   'Hasta 3 URLs de fotos para la tarjeta de la web (p. ej. prendas de una tienda).';
+comment on column public.profiles.show_branding is
+  'Muestra el botón de la esquina y el pie "Soporte artesanal NFC por …" con enlace a tu web.';
 comment on column public.profiles.hero_url is
   'Foto grande de cabecera (vertical, a sangre). Se funde por abajo con page_color.';
 comment on column public.profiles.page_color is
@@ -206,7 +210,7 @@ revoke all on public.analytics_daily from anon, authenticated;
 insert into public.profiles (
   id, slug, business_name, subtitle, logo_url, wordmark_url, hero_url, page_color, theme_accent, mode, direct_url,
   google_review_url, booking_url, booking_label, website_url, website_label, website_photos, website_logo_url,
-  instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
+  instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, show_branding, is_active
 ) values (
   '8b1f6a52-3c4e-4f0a-9d7b-2a6c5e1f0a01',
   'atelier-corte-barba',
@@ -231,6 +235,7 @@ insert into public.profiles (
   '+34 600 000 000',
   null,
   null,
+  true,
   true
 )
 on conflict (slug) do update set
@@ -255,13 +260,14 @@ on conflict (slug) do update set
   whatsapp_phone    = excluded.whatsapp_phone,
   instagram_photos  = excluded.instagram_photos,
   booking_photos    = excluded.booking_photos,
+  show_branding     = excluded.show_branding,
   is_active         = excluded.is_active;
 
 -- Cliente real: NOVA Studio (Vecindario, Gran Canaria)
 insert into public.profiles (
   id, slug, business_name, subtitle, logo_url, wordmark_url, hero_url, page_color, theme_accent, mode, direct_url,
   google_review_url, booking_url, booking_label, website_url, website_label, website_photos, website_logo_url,
-  instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, is_active
+  instagram_url, tiktok_url, whatsapp_phone, instagram_photos, booking_photos, show_branding, is_active
 ) values (
   '3d2c9e7a-51b8-4c6f-8e0d-7f4a1b2c3d02',
   'nova-studio',
@@ -269,8 +275,8 @@ insert into public.profiles (
   'Vecindario · Gran Canaria',
   '/logos/nova-studio.png',
   '/clients/nova-studio/wordmark.png',
-  '/clients/nova-studio/hero.jpg',
-  '#736c65',
+  '/clients/nova-studio/hero.webp',
+  '#394146',
   '#C5A059',
   'portal',
   null,
@@ -278,7 +284,7 @@ insert into public.profiles (
   'https://novastudiogc.booksy.com',
   'Reserva tu cita en Booksy',
   'https://novasupply.es',
-  'Tienda de ropa',
+  'Nova Supply',
   array['/clients/nova-studio/shop-1.jpg', '/clients/nova-studio/shop-2.jpg', '/clients/nova-studio/shop-3.jpg'],
   '/clients/nova-studio/supply-logo.png',
   'https://www.instagram.com/novastudio.gc/',
@@ -286,6 +292,7 @@ insert into public.profiles (
   null,
   array['/clients/nova-studio/ig-1.jpg', '/clients/nova-studio/ig-2.jpg', '/clients/nova-studio/ig-3.jpg'],
   array['/clients/nova-studio/booking-1.jpg', '/clients/nova-studio/booking-2.jpg', '/clients/nova-studio/booking-3.jpg'],
+  false,
   true
 )
 on conflict (slug) do update set
@@ -310,4 +317,5 @@ on conflict (slug) do update set
   whatsapp_phone    = excluded.whatsapp_phone,
   instagram_photos  = excluded.instagram_photos,
   booking_photos    = excluded.booking_photos,
+  show_branding     = excluded.show_branding,
   is_active         = excluded.is_active;

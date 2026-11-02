@@ -32,6 +32,8 @@ export type Profile = {
   instagram_photos: string[] | null
   /** Hasta 3 fotos para la tarjeta de reserva. */
   booking_photos: string[] | null
+  /** Botón de la esquina y pie "Soporte artesanal NFC por …" (enlace a tu web). */
+  show_branding: boolean
   is_active: boolean
 }
 

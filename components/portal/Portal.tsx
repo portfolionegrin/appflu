@@ -25,7 +25,8 @@ type Props = {
   trackingDisabled?: boolean
 }
 
-/** Botón de la lista: miniatura cuadrada a la izquierda y título centrado. */
+/** Botón de la lista: miniatura cuadrada a la izquierda y título centrado.
+ *  Las redes (Instagram, TikTok…) no van aquí: ya están en la fila de iconos. */
 type LinkButton = { track: TrackTarget; href: string; title: string; thumb: ReactNode }
 
 type Social = { track: TrackTarget; href: string; label: string; icon: ReactNode }
@@ -48,8 +49,6 @@ function buildButtons(profile: Profile): LinkButton[] {
   const review = safeUrl(profile.google_review_url)
   const booking = safeUrl(profile.booking_url)
   const website = safeUrl(profile.website_url)
-  const instagram = safeUrl(profile.instagram_url)
-  const tiktok = safeUrl(profile.tiktok_url)
 
   if (review) {
     buttons.push({
@@ -99,33 +98,6 @@ function buildButtons(profile: Profile): LinkButton[] {
       ),
     })
   }
-  if (instagram) {
-    const photo = photoList(profile.instagram_photos)[0]
-    buttons.push({
-      track: 'instagram',
-      href: instagram,
-      title: 'Instagram',
-      thumb: photo ? (
-        <Photo src={photo} />
-      ) : (
-        <IconThumb className="ig-gradient text-white">
-          <InstagramIcon className="size-6" strokeWidth={2} />
-        </IconThumb>
-      ),
-    })
-  }
-  if (tiktok) {
-    buttons.push({
-      track: 'tiktok',
-      href: tiktok,
-      title: 'TikTok',
-      thumb: (
-        <IconThumb className="bg-zinc-950 text-white ring-1 ring-inset ring-white/15">
-          <TikTokIcon className="size-5" />
-        </IconThumb>
-      ),
-    })
-  }
   return buttons
 }
 
@@ -169,10 +141,16 @@ export function Portal({ profile, brand, trackingDisabled }: Props) {
         style={{ '--accent': safeAccent(profile.theme_accent), '--page': page } as CSSProperties}
       >
         {/* Botones flotantes de las esquinas, como en Linktree */}
-        <div className="absolute inset-x-0 top-0 z-20 flex justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))]">
-          <TrackedLink href={brandUrl(brand.url, profile.slug)} {...link('brand')} aria-label={`Soporte NFC por ${brand.name}`} className={CORNER}>
-            <Nfc className="size-5" strokeWidth={2} />
-          </TrackedLink>
+        <div
+          className={`absolute inset-x-0 top-0 z-20 flex px-4 pt-[max(1rem,env(safe-area-inset-top))] ${
+            profile.show_branding ? 'justify-between' : 'justify-end'
+          }`}
+        >
+          {profile.show_branding && (
+            <TrackedLink href={brandUrl(brand.url, profile.slug)} {...link('brand')} aria-label={`Soporte NFC por ${brand.name}`} className={CORNER}>
+              <Nfc className="size-5" strokeWidth={2} />
+            </TrackedLink>
+          )}
           <ShareButton title={profile.business_name} className={CORNER} />
         </div>
 
@@ -187,7 +165,7 @@ export function Portal({ profile, brand, trackingDisabled }: Props) {
               fetchPriority="high"
               className="aspect-[4/5] max-h-[64svh] w-full object-cover object-[50%_22%] short:max-h-[56svh]"
             />
-            <div aria-hidden className="absolute inset-0 bg-linear-to-b from-transparent from-40% to-page" />
+            <div aria-hidden className="absolute inset-0 bg-linear-to-b from-transparent from-50% to-page" />
           </div>
         ) : (
           <div className="flex justify-center pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))]">
@@ -256,17 +234,19 @@ export function Portal({ profile, brand, trackingDisabled }: Props) {
           ))}
         </div>
 
-        {/* 3 · Pie B2B */}
-        <footer className="mt-auto pt-10 text-center">
-          <TrackedLink
-            href={brandUrl(brand.url, profile.slug)}
-            {...link('brand')}
-            className="inline-flex items-center gap-1.5 text-[11px] tracking-wide text-white/65 transition-colors hover:text-white"
-          >
-            <Nfc className="size-3.5" strokeWidth={1.8} />
-            Soporte artesanal NFC por <span className="font-semibold text-white/90">{brand.name}</span>
-          </TrackedLink>
-        </footer>
+        {/* 3 · Pie B2B (se puede desactivar por negocio con show_branding) */}
+        {profile.show_branding && (
+          <footer className="mt-auto pt-10 text-center">
+            <TrackedLink
+              href={brandUrl(brand.url, profile.slug)}
+              {...link('brand')}
+              className="inline-flex items-center gap-1.5 text-[11px] tracking-wide text-white/65 transition-colors hover:text-white"
+            >
+              <Nfc className="size-3.5" strokeWidth={1.8} />
+              Soporte artesanal NFC por <span className="font-semibold text-white/90">{brand.name}</span>
+            </TrackedLink>
+          </footer>
+        )}
       </main>
     </>
   )
